@@ -8,7 +8,7 @@ const totalCharacters = blurb.reduce((acc, curr) => acc + curr.length, 0);
 
 const MILLISECONDS_PER_MINUTE = 60000;
 
-let timer: number = 0;
+let timer : NodeJS.Timer;
 const TypingZone = () => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWordInput, setCurrentWordInput] = useState("");
