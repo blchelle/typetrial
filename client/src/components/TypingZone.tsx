@@ -8,7 +8,7 @@ const totalCharacters = blurb.reduce((acc, curr) => acc + curr.length, 0);
 
 const MILLISECONDS_PER_MINUTE = 60000;
 
-let timer : NodeJS.Timer;
+let timer: NodeJS.Timer;
 const TypingZone = () => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWordInput, setCurrentWordInput] = useState("");
@@ -81,14 +81,14 @@ const TypingZone = () => {
   }, 3000);
 
   return (
-    <div className="flex flex-col w-1/3">
+    <div className="flex flex-col w-11/12 md:w-[40rem]">
       <div className="relative w-full h-8 mb-8">
         <div
-          className="h-full w-8 top-0 bg-green-500 absolute"
+          className="h-full w-8 top-0 bg-primary absolute"
           style={{ left: (100 * currentWordIndex) / blurb.length + "%" }}
         ></div>
       </div>
-      <div className="rounded-lg bg-blue-200 border-gray-400 p-8">
+      <div className="rounded-lg bg-gray-200 p-8">
         <div className="mb-5">
           {blurb.map((word, index) => {
             return [...word, " "].map((letter, letterIndex) => {
@@ -97,7 +97,7 @@ const TypingZone = () => {
                   className={`inline relative ${
                     index < currentWordIndex ||
                     (index === currentWordIndex && letterIndex < getLastMatchingLetterIndex(currentWordInput))
-                      ? "text-green-500"
+                      ? "text-green-600"
                       : ""
                   }`}
                 >

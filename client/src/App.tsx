@@ -13,7 +13,7 @@ function App() {
   return (
     <div className="w-screen h-screen flex justify-center items-center bg-gray-100 flex-col">
       <Router />
-      <button className="bg-green-500 text-white p-4 rounded-lg mt-10" onClick={sendRequest}>
+      <button className="bg-primary text-white p-4 rounded-lg mt-10" onClick={sendRequest}>
         Click Me to Ping the API
       </button>
       {randomServerNumber && <div>The API responded with {randomServerNumber}</div>}
