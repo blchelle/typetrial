@@ -2,18 +2,51 @@ import path from "path";
 import { randomInt } from "crypto";
 
 import express, { Request, Response } from "express";
+import bodyParser from "body-parser";
 import cors from "cors";
+import helmet from "helmet";
+import hpp from "hpp";
+import rateLimit from "express-rate-limit";
+
+import environment from "./config/environment";
+
+// Has to be done in a 'require' because there are no type declarations
+const xss = require("xss-clean");
 
 const app = express();
-app.use(
-  cors({
-    credentials: true,
-    origin: "http://localhost:3000",
-  })
-);
 
-app.get("/api/random", (_: Request, res: Response) => {
+const initMiddleware = () => {
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
+
+  environment.rateLimits.forEach((rateLimitConfig) => {
+    const limit = rateLimit({
+      max: rateLimitConfig.maxRequests,
+      windowMs: rateLimitConfig.timeWindow,
+      message: "Too many requests, try again later",
+    });
+    app.use("/api", limit);
+  });
+
+  environment.clientUrls.forEach((url) => {
+    app.use(cors({ credentials: true, origin: url }));
+  });
+
+  app.use(helmet());
+  app.use(hpp());
+  app.use(xss());
+};
+
+initMiddleware();
+
+app.get("/api/random", (req: Request, res: Response) => {
+  console.log(req.query);
   res.json(randomInt(100).toString());
+});
+
+app.post("/api/echo", (req: Request, res: Response) => {
+  console.log(req.body);
+  res.json(req.body);
 });
 
 app.use(express.static(path.join(__dirname, "../..", "client", "dist")));
