@@ -1,0 +1,14 @@
+on: [pull_request]
+
+jobs:
+  client:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node 17.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 17.x
+    - run: yarn install
+    - run: yarn lint:client
+    - run: yarn prod:client

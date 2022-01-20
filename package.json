@@ -11,7 +11,8 @@
     "dev": "concurrently --kill-others-on-fail \"yarn dev:client\" \"yarn dev:server\"",
     "prod:client": "yarn workspace client build",
     "prod:server": "yarn workspace server prod",
-    "prod": "concurrently --kill-others-on-fail \"yarn prod:client\" \"yarn prod:server\""
+    "prod": "concurrently --kill-others-on-fail \"yarn prod:client\" \"yarn prod:server\"",
+    "lint:client": "yarn workspace client lint"
   },
   "dependencies": {
     "concurrently": "^7.0.0"
