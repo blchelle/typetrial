@@ -2,6 +2,7 @@ import path from "path";
 import { randomInt } from "crypto";
 
 import express, { Request, Response } from "express";
+import expressWs from 'express-ws';
 import bodyParser from "body-parser";
 import cors from "cors";
 import helmet from "helmet";
@@ -13,7 +14,7 @@ import environment from "./config/environment";
 // Has to be done in a 'require' because there are no type declarations
 const xss = require("xss-clean");
 
-const app = express();
+const app = expressWs(express()).app
 
 const initMiddleware = () => {
   app.use(bodyParser.json());
@@ -43,6 +44,16 @@ app.get("/api/random", (req: Request, res: Response) => {
   console.log(req.query);
   res.json(randomInt(100).toString());
 });
+
+app.ws("/api/random", (ws, _) => {
+  setInterval(() => {
+    ws.send(randomInt(100).toString());
+  }, 2000);
+
+  ws.on('close', () => {
+      console.log('WebSocket was closed')
+  })
+})
 
 app.post("/api/echo", (req: Request, res: Response) => {
   console.log(req.body);
