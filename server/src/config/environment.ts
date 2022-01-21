@@ -1,18 +1,18 @@
-export type NodeEnv = "production" | "development";
-
-interface Environment {
-  clientUrls: string[];
-  rateLimits: RateLimitConfig[];
-}
+export type NodeEnv = 'production' | 'development';
 
 interface RateLimitConfig {
   maxRequests: number;
   timeWindow: number;
 }
 
-const environment: { [env in NodeEnv]: Environment } = {
+interface Environment {
+  clientUrls: string[];
+  rateLimits: RateLimitConfig[];
+}
+
+const environment: { [_ in NodeEnv]: Environment } = {
   development: {
-    clientUrls: ["http://localhost:3000"],
+    clientUrls: ['http://localhost:3000'],
     rateLimits: [
       {
         maxRequests: 5,

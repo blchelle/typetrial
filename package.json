@@ -12,7 +12,10 @@
     "prod:client": "yarn workspace client build",
     "prod:server": "yarn workspace server prod",
     "prod": "concurrently --kill-others-on-fail \"yarn prod:client\" \"yarn prod:server\"",
-    "lint:client": "yarn workspace client lint"
+    "lint:client": "yarn workspace client lint",
+    "lint:server": "yarn workspace server lint",
+    "lint": "concurrently --kill-others-on-fail \"yarn lint:client\" \"yarn lint:server\"",
+    "compile:server": "yarn workspace server compile"
   },
   "dependencies": {
     "concurrently": "^7.0.0"
