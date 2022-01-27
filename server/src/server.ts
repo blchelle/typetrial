@@ -1,27 +1,28 @@
 import path from 'path';
 import { randomInt } from 'crypto';
 
-import express, { Request, Response } from 'express';
-import expressWs from 'express-ws';
-import WebSocket from 'ws';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import express, { Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
+import expressWs from 'express-ws';
 import helmet from 'helmet';
 import hpp from 'hpp';
-import rateLimit from 'express-rate-limit';
-
 import { v4 as uuid } from 'uuid';
+import WebSocket from 'ws';
+
 import environment from './config/environment';
+import { openLogFiles, writeLog } from './utils/log';
 
 // Has to be done in a 'require' because there are no type declarations
 const xss = require('xss-clean');
-
-const { app } = expressWs(express());
 
 interface UserInfo {
   username: string;
   room: string;
 }
+
+const { app } = expressWs(express());
 
 const rooms = new Map<string, string[]| undefined>();
 const users = new Map<string, WebSocket | undefined>();
@@ -62,53 +63,53 @@ const initMiddleware = () => {
   app.use(xss());
 };
 
-initMiddleware();
+const main = async () => {
+  initMiddleware();
+  await openLogFiles();
 
-app.get('/api/random', (req: Request, res: Response) => {
-  console.log(req.query);
-  res.json(randomInt(100).toString());
-});
-
-app.ws('/api/connect/:user', (ws, req: Request) => {
-  console.log('Connected');
-
-  const room = getRoom();
-  rooms.get(room)?.push(req.params.user);
-  users.set(req.params.user, ws);
-
-  const userInfo: UserInfo = { username: req.params.user, room };
-
-  ws.on('message', (msg) => {
-    const roomUsers = rooms.get(userInfo.room);
-    const dest = roomUsers?.filter((word) => word.toString() !== userInfo.username.toString());
-
-    sendMessage(userInfo.username, msg.toString(), dest);
+  app.get('/api/random', (req: Request, res: Response) => {
+    writeLog({ event: 'logging request query', data: req.query }, 'info');
+    res.json(randomInt(100).toString());
   });
 
-  ws.on('close', () => {
-    console.log('WebSocket was closed');
-    users.delete(userInfo.username);
-    const remaining = rooms.get(userInfo.room)?.filter((user) => user !== userInfo.username);
+  app.ws('/api/connect/:user', (ws, req: Request) => {
+    writeLog({ event: 'user connected to websocket', user: req.params.user }, 'info');
 
-    if (remaining?.length === 0) {
-      rooms.delete(userInfo.room);
-    } else {
-      rooms.set(userInfo.room, remaining);
-    }
+    const room = getRoom();
+    rooms.get(room)?.push(req.params.user);
+    users.set(req.params.user, ws);
+
+    const userInfo: UserInfo = { username: req.params.user, room };
+
+    ws.on('message', (msg) => {
+      const roomUsers = rooms.get(userInfo.room);
+      const dest = roomUsers?.filter((word) => word.toString() !== userInfo.username.toString());
+
+      writeLog({ event: 'user sent message', user: userInfo.username, message: msg }, 'info');
+      sendMessage(userInfo.username, msg.toString(), dest);
+    });
+
+    ws.on('close', () => {
+      writeLog({ event: 'websocket closed', user: userInfo.username }, 'info');
+      users.delete(userInfo.username);
+      const remaining = rooms.get(userInfo.room)?.filter((user) => user !== userInfo.username);
+
+      if (remaining?.length === 0) {
+        rooms.delete(userInfo.room);
+      } else {
+        rooms.set(userInfo.room, remaining);
+      }
+    });
   });
-});
 
-app.post('/api/echo', (req: Request, res: Response) => {
-  console.log(req.body);
-  res.json(req.body);
-});
+  app.use(express.static(path.join(__dirname, '../..', 'client', 'dist')));
+  app.use((_: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../..', 'client', 'dist', 'index.html'));
+  });
 
-app.use(express.static(path.join(__dirname, '../..', 'client', 'dist')));
-app.use((_: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../..', 'client', 'dist', 'index.html'));
-});
+  app.listen(8080, () => {
+    writeLog({ event: 'server started on port 8080', user: 'server' }, 'info');
+  });
+};
 
-// Start server on port 8080
-app.listen(8080, () => {
-  console.log('Server started on port 8080');
-});
+main();
