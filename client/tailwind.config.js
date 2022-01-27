@@ -12,6 +12,9 @@ module.exports = {
           DEFAULT: '#2191ED',
           dark: '#107CE8',
         },
+        error: {
+          DEFAULT: '#D06262',
+        },
       },
       animation: {
         blink: 'blink 1s linear infinite',

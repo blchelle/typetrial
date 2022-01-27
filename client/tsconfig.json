@@ -19,6 +19,7 @@
     "paths": {
       "@config/*": ["config/*"],
       "@components/*": ["components/*"],
+      "@utils/*": ["utils/*"]
     }
   },
   "include": ["./src"]
