@@ -15,8 +15,10 @@ module.exports = {
     '@typescript-eslint',
   ],
   rules: {
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-shadow': ['error'],
     'import/no-unresolved': 'off', // handled by typescript
     'import/extensions': 'off',
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    'no-shadow': 'off',
   },
 };
