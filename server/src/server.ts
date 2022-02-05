@@ -6,7 +6,6 @@ import cors from 'cors';
 import express, { Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import expressWs from 'express-ws';
-import helmet from 'helmet';
 import hpp from 'hpp';
 import { v4 as uuid } from 'uuid';
 import WebSocket from 'ws';
@@ -58,7 +57,8 @@ const initMiddleware = () => {
     app.use(cors({ credentials: true, origin: url }));
   });
 
-  app.use(helmet());
+  // helmet is disabled until we get https
+  // app.use(helmet());
   app.use(hpp());
   app.use(xss());
 };
