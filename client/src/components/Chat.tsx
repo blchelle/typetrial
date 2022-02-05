@@ -14,7 +14,7 @@ const Chat: React.FC = () => {
   const [lastMessage, setLastMessage] = useState<Message>({ sender: '', msg: '' });
 
   const createSocket = async (name: string) => {
-    const ws = new WebSocket(`ws://${window.location.host}/ap/connect/${name}`);
+    const ws = new WebSocket(`ws://${window.location.host}/api/connect/${name}`);
 
     ws.onopen = () => {
       setWebsocket(ws);
