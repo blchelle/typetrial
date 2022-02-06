@@ -3,4 +3,9 @@ export const emailValidator = (email: string) => {
   return emailRegex.test(email);
 };
 
+export const passwordValidator = (password: string) => {
+  const passwordRegex = /^.*(?=.{8,})(?=.*[a-zA-Z])(?=.*\d).*$/;
+  return passwordRegex.test(password);
+};
+
 export const blankValidator = (text: string) => text.length > 0;

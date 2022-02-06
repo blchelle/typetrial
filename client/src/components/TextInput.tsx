@@ -1,16 +1,13 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, HTMLInputTypeAttribute, useState } from 'react';
 
 interface TextInputProps {
     label: string;
     name: string;
-    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    validator?: (_: string) => boolean
-    color?: 'primary' | 'secondary'
-}
-
-interface TextInputState {
-    isEmpty: boolean;
-    isValid: boolean;
+    onChange: (text: string) => void;
+    isValid?: boolean
+    type?: HTMLInputTypeAttribute
+    color?: 'primary' | 'secondary';
+    note?: string
 }
 
 const primaryColorClasses = {
@@ -29,46 +26,54 @@ const errorColorClasses = {
 };
 
 const TextInput: React.FC<TextInputProps> = ({
-  label, name, color = 'primary', validator = () => true, onChange,
+  color = 'primary',
+  isValid = true,
+  label,
+  name,
+  note,
+  onChange,
+  type = 'text',
 }) => {
-  const [inputState, setInputState] = useState<TextInputState>({ isEmpty: true, isValid: true });
-  const { isEmpty, isValid } = inputState;
+  const [value, setValue] = useState('');
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
+    const { value: newValue } = event.target;
 
-    setInputState({ isEmpty: value.length === 0, isValid: validator(value) });
-    onChange(event);
+    setValue(newValue);
+    onChange(newValue);
   };
 
   const colorClasses = color === 'primary' ? primaryColorClasses : secondaryColorClasses;
 
-  const getLabelClasses = () => (isEmpty ? (
+  const getLabelClasses = () => (value.length === 0 ? (
     'top-1/2 left-4 text-lg text-gray-300'
   ) : (
-    `-top-1/4 left-2 text-sm ${isValid ? colorClasses.text : errorColorClasses.text}`
+    `top-0 left-2 text-xs px-1 ${isValid ? colorClasses.text : errorColorClasses.text}`
   ));
 
   const getInputClasses = () => {
-    if (isEmpty) return 'border-gray-200';
+    if (value.length === 0) return 'border-gray-200';
     if (isValid) return colorClasses.border;
     return errorColorClasses.border;
   };
 
   return (
-    <div className="relative">
-      <label
-        className={`absolute ${getLabelClasses()} -translate-y-1/2 translate-x-1 left-4 transition-all cursor-text font-light`}
-        htmlFor={name}
-      >
-        {label}
-      </label>
-      <input
-        className={`px-4 py-2 rounded-md border-2 ${getInputClasses()}`}
-        onChange={handleChange}
-        type="text"
-        id={name}
-      />
+    <div className="w-full">
+      <div className="relative">
+        <label
+          className={`absolute ${getLabelClasses()} -translate-y-1/2 translate-x-1 left-4 transition-all cursor-text font-light bg-white`}
+          htmlFor={name}
+        >
+          {label}
+        </label>
+        <input
+          className={`px-4 py-2 rounded-md border-2 w-full ${getInputClasses()} bg-transparent`}
+          onChange={handleChange}
+          type={type}
+          id={name}
+        />
+      </div>
+      { note && <p className="mt-1 pl-2 text-xs text-gray-400 uppercase font-light">{note}</p>}
     </div>
   );
 };
