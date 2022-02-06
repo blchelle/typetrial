@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root@localhost:3306/capstone"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Results Result[]
+}
+
+model Passage {
+  id     Int     @id @default(autoincrement())
+  text   String  @db.Text
+  source String?
+
+  Races Race[]
+}
+
+model Race {
+  id        Int      @id @default(autoincrement())
+  passageId Int
+  createdAt DateTime @default(now())
+
+  Passage Passage  @relation(fields: [passageId], references: [id])
+  Results Result[]
+}
+
+model Result {
+  id     Int @id @default(autoincrement())
+  userId Int
+  raceId Int
+  wpm    Int
+  rank   Int
+
+  Race Race @relation(fields: [raceId], references: [id])
+  User User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, raceId])
+  @@index([userId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
