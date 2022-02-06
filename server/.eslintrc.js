@@ -18,6 +18,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-shadow': ['error'],
     'import/no-unresolved': 'off', // handled by typescript
+    'import/prefer-default-export': 'off',
     'import/extensions': 'off',
     'no-shadow': 'off',
   },

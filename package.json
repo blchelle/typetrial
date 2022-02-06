@@ -11,7 +11,7 @@
     "dev": "concurrently --kill-others-on-fail \"yarn dev:client\" \"yarn dev:server\"",
     "prod:client": "yarn workspace client build",
     "prod:server": "yarn workspace server prod",
-    "prod": "concurrently --kill-others-on-fail \"yarn prod:client\" \"yarn prod:server\"",
+    "prod": "yarn workspace server prisma:generate && yarn workspace server prisma:migrate && concurrently --kill-others-on-fail \"yarn prod:client\" \"yarn prod:server\"",
     "lint:client": "yarn workspace client lint",
     "lint:server": "yarn workspace server lint",
     "lint": "concurrently --kill-others-on-fail \"yarn lint:client\" \"yarn lint:server\"",

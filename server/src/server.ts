@@ -1,6 +1,7 @@
 import path from 'path';
 import { randomInt } from 'crypto';
 
+import { PrismaClient } from '@prisma/client';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
@@ -11,6 +12,7 @@ import { v4 as uuid } from 'uuid';
 import WebSocket from 'ws';
 
 import environment from './config/environment';
+import passageRoutes from './routes/passageRoutes';
 import { openLogFiles, writeLog } from './utils/log';
 
 // Has to be done in a 'require' because there are no type declarations
@@ -63,8 +65,13 @@ const initMiddleware = () => {
   app.use(xss());
 };
 
+const initRoutes = () => {
+  app.use('/api/passages', passageRoutes);
+};
+
 const main = async () => {
   initMiddleware();
+  initRoutes();
   await openLogFiles();
 
   app.get('/api/random', (req: Request, res: Response) => {
@@ -112,4 +119,7 @@ const main = async () => {
   });
 };
 
-main();
+export const db = new PrismaClient();
+export default app;
+
+main().finally(async () => { await db.$disconnect(); });
