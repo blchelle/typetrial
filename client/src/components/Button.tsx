@@ -8,11 +8,13 @@ interface ButtonProps {
   color?: 'primary' | 'secondary';
   type?: 'solid' | 'border' | 'ghost';
   style?: React.CSSProperties;
+  fullWidth?: boolean;
   Icon?: React.FC<React.SVGProps<SVGSVGElement>>;
 }
 
 const Button: React.FC<ButtonProps> = ({
   color = 'primary',
+  fullWidth = false,
   Icon,
   isAsync = false,
   isDisabled = false,
@@ -25,6 +27,9 @@ const Button: React.FC<ButtonProps> = ({
 
   const dynamicButtonStyles = () => {
     const classes = [];
+    if (fullWidth) classes.push('w-full', 'justify-center');
+    else classes.push('w-fit', 'justify-between');
+
     if (isDisabled || isLoading) classes.push('cursor-auto');
 
     if (type === 'border') classes.push('border-2');
@@ -38,7 +43,7 @@ const Button: React.FC<ButtonProps> = ({
     if (!isDisabled && type === 'border') classes.push(`border-${color}`);
 
     if (isDisabled && type === 'solid') classes.push('bg-gray-400');
-    if (!isDisabled && type === 'solid') classes.push(`bg-${color}`, `hover:bg-${color}`);
+    if (!isDisabled && type === 'solid') classes.push(`bg-${color}`, `hover:bg-${color}-dark`);
 
     return classes.join(' ');
   };
@@ -61,7 +66,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`relative flex items-center justify-between w-fit h-fit px-4 py-2 font-bold rounded-lg transition overflow-hidden ${dynamicButtonStyles()}`}
+      className={`relative flex items-center h-10 px-4 py-2 font-bold rounded-lg transition overflow-hidden ${dynamicButtonStyles()}`}
       style={style}
       onClick={handleClick}
       disabled={isDisabled}

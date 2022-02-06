@@ -10,15 +10,16 @@ module.exports = {
     extend: {
       colors: {
         primary: {
+          light: '#42A2F0',
+          DEFAULT: '#2191ED',
+          dark: '#107CE8',
+          transparent: '#107CE822',
+        },
+        secondary: {
           light: '#14E1BF',
           DEFAULT: '#2CC9A7',
           dark: '#3EBDA1',
           transparent: '#3EBDA122',
-        },
-        secondary: {
-          DEFAULT: '#2191ED',
-          dark: '#107CE8',
-          transparent: '#107CE822',
         },
         error: {
           DEFAULT: '#D06262',
