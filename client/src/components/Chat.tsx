@@ -14,7 +14,8 @@ const Chat: React.FC = () => {
   const [lastMessage, setLastMessage] = useState<Message>({ sender: '', msg: '' });
 
   const createSocket = async (name: string) => {
-    const ws = new WebSocket(`ws://${window.location.host}/api/connect/${name}`);
+    const url = process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : window.location.host;
+    const ws = new WebSocket(`ws://${url}/api/connect/${name}`);
 
     ws.onopen = () => {
       setWebsocket(ws);
