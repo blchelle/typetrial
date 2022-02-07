@@ -13,6 +13,7 @@ import WebSocket from 'ws';
 
 import environment from './config/environment';
 import passageRoutes from './routes/passageRoutes';
+import userRoutes from './routes/userRoutes';
 import { openLogFiles, writeLog } from './utils/log';
 
 // Has to be done in a 'require' because there are no type declarations
@@ -67,6 +68,7 @@ const initMiddleware = () => {
 
 const initRoutes = () => {
   app.use('/api/passages', passageRoutes);
+  app.use('/api/users', userRoutes);
 };
 
 const main = async () => {
