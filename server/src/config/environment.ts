@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+
 export type NodeEnv = 'production' | 'development';
 
 interface RateLimitConfig {
@@ -5,10 +7,20 @@ interface RateLimitConfig {
   timeWindow: number;
 }
 
+interface JWTConfig {
+  secret: string;
+  expiryTime: number;
+  secure: boolean;
+}
+
 interface Environment {
   clientUrls: string[];
   rateLimits: RateLimitConfig[];
+  jwt: JWTConfig;
 }
+
+// Must load the .env file before initializing the environment
+dotenv.config({ path: `${__dirname}/../../.env.${process.env.NODE_ENV as NodeEnv}` });
 
 const environment: { [_ in NodeEnv]: Environment } = {
   development: {
@@ -23,6 +35,11 @@ const environment: { [_ in NodeEnv]: Environment } = {
         timeWindow: 1000 * 60, // 1 Minute
       },
     ],
+    jwt: {
+      secret: process.env.JWT_SECRET!,
+      expiryTime: 60 * 60 * 24 * 365, // 1 Year
+      secure: false,
+    },
   },
   production: {
     clientUrls: [],
@@ -36,6 +53,11 @@ const environment: { [_ in NodeEnv]: Environment } = {
         timeWindow: 1000 * 60, // 1 Minute
       },
     ],
+    jwt: {
+      secret: process.env.JWT_SECRET!,
+      expiryTime: 60 * 60 * 24 * 7, // 7 Days
+      secure: true,
+    },
   },
 };
 

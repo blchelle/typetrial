@@ -9,6 +9,12 @@ import { StatusCodes } from 'http-status-codes';
 
 import { writeLog } from './log';
 
+export interface FieldError {
+  field: string
+  input: string
+  message: string
+}
+
 interface PrismaError {
     message: string
     httpStatus: number
