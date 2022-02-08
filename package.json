@@ -15,7 +15,8 @@
     "lint:client": "yarn workspace client lint",
     "lint:server": "yarn workspace server lint",
     "lint": "concurrently --kill-others-on-fail \"yarn lint:client\" \"yarn lint:server\"",
-    "compile:server": "yarn workspace server compile"
+    "compile:server": "yarn workspace server compile",
+    "test:server": "yarn workspace server test"
   },
   "dependencies": {
     "concurrently": "^7.0.0"

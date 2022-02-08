@@ -1,5 +1,5 @@
 import { User } from '@prisma/client';
-import { db } from '../server';
+import db from '../prismaClient';
 import { classifyPrismaError, FieldError } from '../utils/errors';
 
 interface SignupInput {
@@ -105,14 +105,9 @@ export const validateSignupInput = async (data: any) => {
 };
 
 export const validateLoginInput = async (input: any) => {
-  const { identifier, password } = input;
+  const { identifier } = input;
 
-  let errors: FieldError[] = [];
-  const { data, errors: idErrors } = await validateIdentifierForLogin(identifier);
-
-  errors = [...errors, ...idErrors];
-  errors = [...errors, ...validatePassword(password)];
-
+  const { data, errors } = await validateIdentifierForLogin(identifier);
   return { data, errors };
 };
 
