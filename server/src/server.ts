@@ -1,7 +1,6 @@
 import path from 'path';
 import { randomInt } from 'crypto';
 
-import { PrismaClient } from '@prisma/client';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
@@ -15,6 +14,7 @@ import environment from './config/environment';
 import passageRoutes from './routes/passageRoutes';
 import userRoutes from './routes/userRoutes';
 import { openLogFiles, writeLog } from './utils/log';
+import db from './prismaClient';
 
 // Has to be done in a 'require' because there are no type declarations
 const xss = require('xss-clean');
@@ -121,7 +121,6 @@ const main = async () => {
   });
 };
 
-export const db = new PrismaClient();
-export default app;
-
 main().finally(async () => { await db.$disconnect(); });
+
+export default app;

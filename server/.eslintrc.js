@@ -14,6 +14,12 @@ module.exports = {
   plugins: [
     '@typescript-eslint',
   ],
+  globals: {
+    jest: true,
+    beforeEach: true,
+    describe: true,
+    it: true,
+  },
   rules: {
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-shadow': ['error'],
@@ -22,4 +28,13 @@ module.exports = {
     'import/extensions': 'off',
     'no-shadow': 'off',
   },
+  overrides: [
+    {
+      files: ['*.spec.ts'],
+      rules: {
+        'no-unused-expressions': 'off',
+        'max-len': 'off',
+      },
+    },
+  ],
 };

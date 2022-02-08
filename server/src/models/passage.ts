@@ -1,6 +1,6 @@
 import { Passage } from '@prisma/client';
 import { classifyPrismaError } from '../utils/errors';
-import { db } from '../server';
+import db from '../prismaClient';
 
 export const createPassage = async (passage: Passage) => {
   try {
