@@ -1,20 +1,18 @@
-import path from 'path';
-import { randomInt } from 'crypto';
-
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import expressWs from 'express-ws';
+import path from 'path';
 import hpp from 'hpp';
+import { WebSocket } from 'ws';
 import { v4 as uuid } from 'uuid';
-import WebSocket from 'ws';
 
 import environment from './config/environment';
-import passageRoutes from './routes/passageRoutes';
-import userRoutes from './routes/userRoutes';
+import apiRoutes from './routes/apiRoutes';
 import { openLogFiles, writeLog } from './utils/log';
 import db from './prismaClient';
+import errorMiddleware from './middlewares/errorMiddleware';
 
 // Has to be done in a 'require' because there are no type declarations
 const xss = require('xss-clean');
@@ -60,26 +58,17 @@ const initMiddleware = () => {
     app.use(cors({ credentials: true, origin: url }));
   });
 
-  // helmet is disabled until we get https
+  // TODO: Enable HTTPS on EC2 so that helmet can be enabled
   // app.use(helmet());
+
   app.use(hpp());
   app.use(xss());
 };
 
-const initRoutes = () => {
-  app.use('/api/passages', passageRoutes);
-  app.use('/api/users', userRoutes);
-};
-
 const main = async () => {
   initMiddleware();
-  initRoutes();
+  app.use('/api', apiRoutes);
   await openLogFiles();
-
-  app.get('/api/random', (req: Request, res: Response) => {
-    writeLog({ event: 'logging request query', data: req.query }, 'info');
-    res.json(randomInt(100).toString());
-  });
 
   app.ws('/api/connect/:user', (ws, req: Request) => {
     writeLog({ event: 'user connected to websocket', user: req.params.user }, 'info');
@@ -115,6 +104,8 @@ const main = async () => {
   app.use((_: Request, res: Response) => {
     res.sendFile(path.join(__dirname, '../..', 'client', 'dist', 'index.html'));
   });
+
+  app.use(errorMiddleware);
 
   app.listen(8080, () => {
     writeLog({ event: 'server started on port 8080', user: 'server' }, 'info');
