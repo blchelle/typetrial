@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development ts-node-dev ./src/server.ts",
+    "dev": "NODE_ENV=development ts-node-dev --no-notify --exit-child ./src/server.ts",
     "prod": "tsc && NODE_ENV=production pm2 startOrRestart pm2.config.js",
     "compile": "tsc",
     "lint": "eslint src --ext .js,.ts",
@@ -11,11 +11,11 @@
     "prisma:migrate:dev": "dotenv -e .env.development -- prisma migrate dev",
     "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "test": "jest -i"
+    "test": "dotenv -e .env.test -- jest -i"
   },
   "license": "MIT",
   "dependencies": {
-    "@prisma/client": "^3.9.1",
+    "@prisma/client": "^3.9.2",
     "argon2": "^0.28.4",
     "body-parser": "^1.19.1",
     "chai": "^4.3.6",
@@ -30,7 +30,7 @@
     "jest-mock-extended": "^2.0.4",
     "jsonwebtoken": "^8.5.1",
     "nodemon": "2.0.3",
-    "prisma": "^3.9.0",
+    "prisma": "^3.9.2",
     "supertest": "^6.2.2",
     "uuid": "^8.3.2",
     "ws": "^8.4.2",

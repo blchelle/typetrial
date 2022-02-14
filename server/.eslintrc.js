@@ -25,6 +25,7 @@ module.exports = {
     '@typescript-eslint/no-shadow': ['error'],
     'import/no-unresolved': 'off', // handled by typescript
     'import/prefer-default-export': 'off',
+    'max-len': ['error', { code: 120, ignoreRegExpLiterals: true }],
     'import/extensions': 'off',
     'no-shadow': 'off',
   },

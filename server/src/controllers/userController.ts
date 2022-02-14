@@ -1,32 +1,21 @@
 import argon2 from 'argon2';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import jwt from 'jsonwebtoken';
 
+import { createJWT } from '../middlewares/authMiddleware';
 import {
-  validateSignupInput, signupUser, validateLoginInput, sanitizeUserOutput,
+  validateSignupInput,
+  signupUser,
+  validateLoginInput,
+  sanitizeUserOutput,
 } from '../models/user';
-import environment from '../config/environment';
 import { writeLog } from '../utils/log';
-
-const createJWT = (userId: number, res: Response) => {
-  const { secret, expiryTime, secure } = environment.jwt;
-
-  const token = jwt.sign({ id: userId }, secret, { expiresIn: expiryTime });
-  const cookieOptions = {
-    expires: new Date(Date.now() + 1000 * expiryTime),
-    httpOnly: true,
-    secure,
-  };
-
-  res.cookie('jwt', token, cookieOptions);
-};
 
 export const handleSignupUser = async (req: Request, res: Response) => {
   const { body } = req;
-  const errors = await validateSignupInput(body);
+  const { errors, status } = await validateSignupInput(body);
   if (errors.length > 0) {
-    res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ data: null, errors });
+    res.status(status).json({ data: null, errors });
     return;
   }
 
@@ -51,9 +40,9 @@ export const handleSignupUser = async (req: Request, res: Response) => {
 export const handleLoginUser = async (req: Request, res: Response) => {
   const { body } = req;
 
-  const { data: user, errors } = await validateLoginInput(body);
+  const { data: user, errors, status } = await validateLoginInput(body);
   if (errors.length > 0) {
-    res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({ data: null, errors });
+    res.status(status).json({ data: null, errors });
     return;
   } if (!user) {
     writeLog({ event: 'null user after login without error' }, 'anomaly');
@@ -69,7 +58,7 @@ export const handleLoginUser = async (req: Request, res: Response) => {
   }
 
   createJWT(user.id, res);
-  res.status(StatusCodes.CREATED).json(
+  res.status(StatusCodes.OK).json(
     { data: sanitizeUserOutput(user), errors: [] },
   );
 };
