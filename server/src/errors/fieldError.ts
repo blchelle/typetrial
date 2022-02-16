@@ -7,14 +7,14 @@ class FieldError {
   /**
    * The input that caused the error
    */
-  input: string;
+  input: unknown;
 
   /**
    * A message describing why the input is invalid for the field
    */
   message: string;
 
-  constructor(field: string, input: string, message: string) {
+  constructor(field: string, input: unknown, message: string) {
     this.field = field;
     this.input = input;
     this.message = message;
