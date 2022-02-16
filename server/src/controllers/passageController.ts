@@ -6,7 +6,6 @@ import { createPassage } from '../models/passage';
 export const handleCreatePassage = async (req: Request, res: Response) => {
   const { body } = req;
 
-  const { passage, error } = await createPassage(body);
-
-  res.status(error?.httpStatus ?? StatusCodes.CREATED).json({ data: passage, error });
+  const passage = await createPassage(body);
+  res.status(StatusCodes.CREATED).json({ data: passage, error: [] });
 };

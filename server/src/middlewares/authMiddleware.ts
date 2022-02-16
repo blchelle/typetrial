@@ -55,7 +55,7 @@ export const protectRoute = (minRole: Role) => async (req: Request, _: Response,
     if (error) return next(error);
     if (!token?.id) return next(new JsonWebTokenError('no user id on token'));
 
-    const { data: user } = await getUserById(token.id);
+    const user = await getUserById(token.id);
     if (!user) return next(new JsonWebTokenError('user in token does not exist'));
 
     if (user.passwordChangedAt && user.passwordChangedAt.getTime() > token.iat) {

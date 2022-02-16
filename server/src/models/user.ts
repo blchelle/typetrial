@@ -1,8 +1,8 @@
 import { User } from '@prisma/client';
 import { StatusCodes } from 'http-status-codes';
+import APIError from '../errors/apiError';
 import FieldError from '../errors/fieldError';
 import db from '../prismaClient';
-import { classifyPrismaError } from '../utils/errors';
 
 interface SignupInput {
   email: string
@@ -76,15 +76,13 @@ const validatePassword = (password: any) => {
 
 const validateIdentifierForLogin = async (identifier: any) => {
   const errors = [];
-  let status = StatusCodes.OK;
-
   if (!identifier) {
     errors.push(new FieldError('email/username', identifier, 'must be present'));
   } else if (typeof identifier !== 'string') {
     errors.push(new FieldError('email/username', identifier, 'must be a string'));
   }
 
-  if (errors.length > 0) return { data: null, errors, status: StatusCodes.UNPROCESSABLE_ENTITY };
+  if (errors.length > 0) throw new APIError('invalid input', StatusCodes.UNPROCESSABLE_ENTITY, errors);
 
   // Determine whether the identifier is an email, username, or neither
   let identifierField: 'email' | 'username' | null = null;
@@ -92,22 +90,24 @@ const validateIdentifierForLogin = async (identifier: any) => {
   else if (USERNAME_REGEX.test(identifier)) identifierField = 'username';
 
   if (!identifierField) {
-    return {
-      data: null,
-      errors: [new FieldError('email/username', identifier, 'must be a valid identifier')],
-      status: StatusCodes.UNPROCESSABLE_ENTITY,
-    };
+    const error = [new FieldError('email/username', identifier, 'must be a valid identifier')];
+    throw new APIError('invalid input', StatusCodes.UNPROCESSABLE_ENTITY, error);
   }
 
   const existingUser = await db.user.findUnique({ where: { [identifierField]: identifier } });
   if (!existingUser) {
-    errors.push(new FieldError(identifierField, identifier, 'is not associated with an account'));
-    status = StatusCodes.NOT_FOUND;
+    const error = new FieldError(identifierField, identifier, 'is not associated with an account');
+    throw new APIError('invalid input', StatusCodes.NOT_FOUND, [error]);
   }
 
-  return { data: existingUser, errors, status };
+  return existingUser;
 };
 
+/**
+ * Validates that the email, username, password are all valid.
+ * Throws a detailed error if any are invalid
+ * @param data The request body containing the signup input
+ */
 export const validateSignupInput = async (data: any) => {
   const { email, username, password } = data;
 
@@ -118,7 +118,9 @@ export const validateSignupInput = async (data: any) => {
 
   errors = [...errors, ...emailErrors, ...usernameErrors, ...passwordErrors];
 
-  return { errors, status: Math.max(emailStatus, usernameStatus, passwordStatus) };
+  if (errors.length > 0) {
+    throw new APIError('invalid input', Math.max(emailStatus, usernameStatus, passwordStatus), errors);
+  }
 };
 
 export const validateLoginInput = async (input: any) => {
@@ -140,20 +142,6 @@ export const sanitizeUserOutput = (user: User) => {
   };
 };
 
-export const signupUser = async (inputUser: SignupInput) => {
-  try {
-    const newUser = await db.user.create({ data: { ...inputUser } });
-    return { data: newUser, error: null };
-  } catch (e) {
-    return { data: null, error: classifyPrismaError(e) };
-  }
-};
+export const signupUser = async (inputUser: SignupInput) => db.user.create({ data: { ...inputUser } });
 
-export const getUserById = async (id: number) => {
-  try {
-    const user = await db.user.findUnique({ where: { id } });
-    return { data: user, error: null };
-  } catch (error) {
-    return { data: null, error: classifyPrismaError(error) };
-  }
-};
+export const getUserById = async (id: number) => db.user.findUnique({ where: { id } });

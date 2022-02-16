@@ -1,4 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
+import FieldError from './fieldError';
 
 /**
  * Used for creating API Errors.
@@ -12,11 +13,18 @@ class APIError extends Error {
    */
   statusCode: StatusCodes;
 
-  constructor(message: string, statusCode: StatusCodes) {
+  /**
+   * Specific errors related to the users input.
+   * i.e. Weak password, using an email that already exists, missing a required field, etc...
+   */
+  fieldErrors: FieldError[];
+
+  constructor(message: string, statusCode: StatusCodes, fieldErrors: FieldError[] = []) {
     super(message);
 
     this.statusCode = statusCode;
     this.message = message;
+    this.fieldErrors = fieldErrors;
 
     // Prevents APIError objects from being implicitly casted to Error
     Object.setPrototypeOf(this, new.target.prototype);
