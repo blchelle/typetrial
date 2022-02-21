@@ -124,7 +124,12 @@ export const validateSignupInput = async (data: any) => {
 };
 
 export const validateLoginInput = async (input: any) => {
-  const { identifier } = input;
+  const { identifier, password } = input;
+
+  if (!password) {
+    const error = [new FieldError('password', identifier, 'must be a valid identifier')];
+    throw new APIError('invalid input', StatusCodes.UNPROCESSABLE_ENTITY, error);
+  }
 
   return validateIdentifierForLogin(identifier);
 };

@@ -6,7 +6,6 @@ import TextInput from '@components/TextInput';
 import axios from '@config/axios';
 import _ from 'lodash';
 import { AuthViewContext } from './AuthMux';
-
 import { FieldError, ApiError } from '../types/api';
 
 export type SignupError = {
@@ -37,6 +36,7 @@ const Signup: React.FC = () => {
     params.append('password', password);
     await axios.post('/api/users/signup', params)
       .then((res) => {
+        alert('Signup successful!');
         // TODO: CLOSE MODAL
       })
       .catch((err) => {
