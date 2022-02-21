@@ -7,7 +7,8 @@ interface TextInputProps {
     isValid?: boolean
     type?: HTMLInputTypeAttribute
     color?: 'primary' | 'secondary';
-    note?: string
+    note?: string,
+    errorNote?: string
 }
 
 const primaryColorClasses = {
@@ -31,6 +32,7 @@ const TextInput: React.FC<TextInputProps> = ({
   label,
   name,
   note,
+  errorNote,
   onChange,
   type = 'text',
 }) => {
@@ -74,6 +76,7 @@ const TextInput: React.FC<TextInputProps> = ({
         />
       </div>
       { note && <p className="mt-1 pl-2 text-xs text-gray-400 uppercase font-light">{note}</p>}
+      { errorNote && <p className="mt-1 pl-2 text-xs text-error uppercase ">{errorNote}</p>}
     </div>
   );
 };
