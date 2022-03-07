@@ -25,10 +25,12 @@ module.exports = {
     'react/jsx-filename-extension': [2, { extensions: ['.js', '.jsx', '.ts', '.tsx'] }],
     'react/function-component-definition': 'off',
     'react/require-default-props': 'off',
+    'react/jsx-props-no-spreading': 'off',
     'react/button-has-type': 'off',
     'import/no-unresolved': 'off', // handled by typescript
     'import/extensions': 'off',
     'jsx-a11y/label-has-associated-control': 'off',
+    'no-use-before-define': 'off',
     'no-unused-vars': 'off',
   },
   ignorePatterns: ['node_modules/', 'dist/'],

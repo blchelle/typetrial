@@ -36,7 +36,7 @@ describe('user', () => {
       expect(async () => validateSignupInput({ ...validInput })).to.not.throw();
     });
 
-    it('returns an error for taken email/username', async () => {
+    it('returns an error for taken identifier', async () => {
       dbMock.user.findUnique.mockResolvedValue(mockUser);
 
       await expectThrowsAsync(
@@ -142,11 +142,11 @@ describe('user', () => {
 
     it('returns an error for weak password', async () => {
       await expectThrowsAsync(
-        () => validateSignupInput({ ...validInput, password: 'password' }),
+        () => validateSignupInput({ ...validInput, password: 'weak' }),
         new APIError(
           'invalid input',
           StatusCodes.UNPROCESSABLE_ENTITY,
-          [{ field: 'password', input: 'password', message: 'must be a valid password' }],
+          [{ field: 'password', input: 'weak', message: 'must be a valid password' }],
         ),
       );
     });
@@ -168,7 +168,7 @@ describe('user', () => {
         new APIError(
           'invalid input',
           StatusCodes.UNPROCESSABLE_ENTITY,
-          [{ field: 'email/username', input: '', message: 'must be present' }],
+          [{ field: 'identifier', input: '', message: 'must be present' }],
         ),
       );
     });
@@ -179,7 +179,7 @@ describe('user', () => {
         new APIError(
           'invalid input',
           StatusCodes.UNPROCESSABLE_ENTITY,
-          [{ field: 'email/username', input: true, message: 'must be a string' }],
+          [{ field: 'identifier', input: true, message: 'must be a string' }],
         ),
       );
     });
@@ -190,7 +190,7 @@ describe('user', () => {
         new APIError(
           'invalid input',
           StatusCodes.UNPROCESSABLE_ENTITY,
-          [{ field: 'email/username', input: 'has spaces', message: 'must be a valid identifier' }],
+          [{ field: 'identifier', input: 'has spaces', message: 'must be a valid identifier' }],
         ),
       );
     });

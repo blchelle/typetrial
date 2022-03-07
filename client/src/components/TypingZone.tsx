@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import {
+  Container,
+  Paper, Text, TextInput, useMantineTheme,
+} from '@mantine/core';
 
 const blurb = "We can now get these kids to buy just about anything. We can have them chasing a new trend every week. And that is good for the economy. And what's good for the economy is good for the country.".split(
   ' ',
@@ -8,6 +12,8 @@ const MILLISECONDS_PER_MINUTE = 60000;
 
 let timer: NodeJS.Timer;
 const TypingZone: React.FC = () => {
+  const theme = useMantineTheme();
+
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWordInput, setCurrentWordInput] = useState('');
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -64,7 +70,17 @@ const TypingZone: React.FC = () => {
   const renderCursor = (wordIndex: number, letterIndex: number): JSX.Element | null => {
     if (currentWordIndex === wordIndex && letterIndex === lastMatchingCharIndex(currentWordInput)) {
       return (
-        <span className="animate-blink absolute top-0 left-0 bg-gray-700 h-5 inline-block" style={{ width: '1px' }} />
+        <span
+          style={{
+            width: '2px',
+            top: 0,
+            backgroundColor: theme.colors.gray[7],
+            left: 0,
+            display: 'inline-block',
+            height: '1rem',
+            position: 'absolute',
+          }}
+        />
       );
     }
 
@@ -79,38 +95,41 @@ const TypingZone: React.FC = () => {
   }, 3000);
 
   return (
-    <div className="flex flex-col w-11/12 md:w-[40rem]">
-      <div className="relative w-full h-8 mb-8">
-        <div
-          className="h-full w-8 top-0 bg-primary absolute"
-          style={{ left: `${(100 * currentWordIndex) / blurb.length}%` }}
-        />
-      </div>
-      <div className="rounded-lg bg-gray-200 p-8">
-        <div className="mb-5">
-          {blurb.map((word, index) => [...word, ' '].map((letter, letterIndex) => {
-            const charColor = index < currentWordIndex || (index === currentWordIndex && letterIndex < lastMatchingCharIndex(currentWordInput)) ? 'text-green-600' : '';
-
-            return (
-              <span className={`inline relative ${charColor}`}>
-                {renderCursor(index, letterIndex)}
-                {letter}
-              </span>
-
-            );
-          }))}
+    <Container size="sm">
+      <Paper padding="xl" style={{ backgroundColor: theme.colors.blue[1] }}>
+        <div className="relative w-full h-8 mb-8">
+          <div
+            className="h-full w-8 top-0 bg-primary absolute"
+            style={{ left: `${(100 * currentWordIndex) / blurb.length}%` }}
+          />
         </div>
-        <input
-          type="text"
-          className={`border border-gray-400 p-2 w-full ${error ? 'bg-red-500' : ''}`}
-          onChange={handleInputChange}
-          value={currentWordInput}
-          disabled={currentWordIndex === blurb.length}
-        />
-        {currentWordIndex === blurb.length && <p>You Win!</p>}
-        {startTime && endTime && <p>{`${convertTimeToWPM()} WPM`}</p>}
-      </div>
-    </div>
+        <div className="rounded-lg bg-gray-200 p-8">
+          <div className="mb-5">
+            {blurb.map((word, index) => [...word, ' '].map((letter, letterIndex) => {
+              const charColor = index < currentWordIndex || (
+                index === currentWordIndex && letterIndex < lastMatchingCharIndex(currentWordInput)
+              ) ? theme.colors.green[8] : '';
+
+              return (
+                <Text style={{ display: 'inline', position: 'relative', color: charColor }}>
+                  {renderCursor(index, letterIndex)}
+                  {letter}
+                </Text>
+
+              );
+            }))}
+          </div>
+          <TextInput
+            styles={{ defaultVariant: { backgroundColor: error ? theme.colors.red[5] : 'auto' } }}
+            onChange={handleInputChange}
+            value={currentWordInput}
+            disabled={currentWordIndex === blurb.length}
+          />
+          {currentWordIndex === blurb.length && <p>You Win!</p>}
+          {startTime && endTime && <p>{`${convertTimeToWPM()} WPM`}</p>}
+        </div>
+      </Paper>
+    </Container>
   );
 };
 

@@ -3,28 +3,30 @@ import React, { useState } from 'react';
 import Router from '@components/Router';
 import axios from '@config/axios';
 import Navigation from '@components/Navigation';
+import { ModalsProvider } from '@mantine/modals';
+import { Button, Group } from '@mantine/core';
 
 const App: React.FC = () => {
   const [randomServerNumber, setRandomServerNumber] = useState(null);
 
   const sendRequest = async () => {
-    const res = await axios.get('/api/random');
+    const res = await axios.get('/random');
     setRandomServerNumber(res.data);
   };
 
   return (
-    <div className="h-screen">
+    <ModalsProvider>
       <Navigation />
-      <div className="w-screen h-full pt-14 flex justify-center items-center bg-gray-100 flex-col">
+      <Group direction="column" align="center" mt={16}>
         <Router />
-        <button className="bg-primary text-white p-4 rounded-lg mt-10" onClick={sendRequest}>
+        <Button mt={16} onClick={sendRequest}>
           Click Me to Ping the API
-        </button>
+        </Button>
         {randomServerNumber && (
         <div>{randomServerNumber}</div>
         )}
-      </div>
-    </div>
+      </Group>
+    </ModalsProvider>
   );
 };
 

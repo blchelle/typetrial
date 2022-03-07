@@ -12,7 +12,7 @@ interface SignupInput {
 
 const EMAIL_REGEX = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const USERNAME_REGEX = /^[a-z0-9_-]{0,16}$/;
-const PASSWORD_REGEX = /^.*(?=.{8,32})(?=.*[a-zA-Z])(?=.*\d).*$/;
+const PASSWORD_REGEX = /^[a-zA-Z0-9%+'!#$^?:,~_-]{8,32}$/;
 
 const validateEmailForSignup = async (email: any) => {
   const errors = [];
@@ -77,9 +77,9 @@ const validatePassword = (password: any) => {
 const validateIdentifierForLogin = async (identifier: any) => {
   const errors = [];
   if (!identifier) {
-    errors.push(new FieldError('email/username', identifier, 'must be present'));
+    errors.push(new FieldError('identifier', identifier, 'must be present'));
   } else if (typeof identifier !== 'string') {
-    errors.push(new FieldError('email/username', identifier, 'must be a string'));
+    errors.push(new FieldError('identifier', identifier, 'must be a string'));
   }
 
   if (errors.length > 0) throw new APIError('invalid input', StatusCodes.UNPROCESSABLE_ENTITY, errors);
@@ -90,7 +90,7 @@ const validateIdentifierForLogin = async (identifier: any) => {
   else if (USERNAME_REGEX.test(identifier)) identifierField = 'username';
 
   if (!identifierField) {
-    const error = [new FieldError('email/username', identifier, 'must be a valid identifier')];
+    const error = [new FieldError('identifier', identifier, 'must be a valid identifier')];
     throw new APIError('invalid input', StatusCodes.UNPROCESSABLE_ENTITY, error);
   }
 
