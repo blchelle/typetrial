@@ -1,26 +1,28 @@
-import React, { useState } from 'react';
-import Button from '@components/Button';
-import AuthMux, { AuthView } from '@components/AuthMux';
-import Modal from './Modal';
+import React from 'react';
+import {
+  Button, Group, Header, Title,
+} from '@mantine/core';
+
+import { useModals } from '@mantine/modals';
+import { AuthModals, AuthType } from '@components/AuthForm';
 
 const Navigation: React.FC = () => {
-  const [openModal, setOpenModal] = useState<AuthView | null>(null);
+  const modals = useModals();
+
+  const openAuthModal = (type: AuthType) => {
+    modals.openModal(AuthModals[type]);
+  };
 
   return (
-    <div className="h-14 w-full bg-gray-200 flex px-12 fixed">
-      <div className="ml-auto flex p-2">
-        <Button text="Login" type="ghost" style={{ marginRight: '0.5rem' }} onClick={() => setOpenModal('login')} />
-        <Button text="Sign Up" onClick={() => setOpenModal('signup')} />
-        { openModal && (
-          <Modal
-            isOpen
-            onRequestClose={() => setOpenModal(null)}
-          >
-            <AuthMux defaultView={openModal} />
-          </Modal>
-        )}
-      </div>
-    </div>
+    <Header height={50}>
+      <Group position="apart" spacing="xs">
+        <Title order={2}>TypeTrial</Title>
+        <Group>
+          <Button size="md" variant="light" onClick={() => openAuthModal('login')}>Login</Button>
+          <Button size="md" onClick={() => openAuthModal('signup')}>Sign Up</Button>
+        </Group>
+      </Group>
+    </Header>
   );
 };
 

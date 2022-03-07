@@ -3,8 +3,13 @@ export const emailValidator = (email: string) => {
   return emailRegex.test(email);
 };
 
+export const usernameValidator = (username: string) => {
+  const usernameRegex = /^[a-z0-9_-]{3,16}$/;
+  return usernameRegex.test(username);
+};
+
 export const passwordValidator = (password: string) => {
-  const passwordRegex = /^.*(?=.{8,})(?=.*[a-zA-Z])(?=.*\d).*$/;
+  const passwordRegex = /^[a-zA-Z0-9%+'!#$^?:,~_-]{8,32}$/;
   return passwordRegex.test(password);
 };
 
