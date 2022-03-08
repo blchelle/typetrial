@@ -1,3 +1,4 @@
 source /home/ec2-user/.bash_profile
 cd capstone
-yarn install
+cd /home/ec2-user/capstone
+yarn install 
