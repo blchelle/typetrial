@@ -18,7 +18,6 @@ import sendResetPasswordEmail from '../utils/mailer';
 
 export const handleSignupUser = async (req: Request, res: Response) => {
   const { body } = req;
-
   await validateSignupInput(body);
 
   const { email, username, password } = body;
@@ -28,7 +27,7 @@ export const handleSignupUser = async (req: Request, res: Response) => {
   const newUser = await signupUser(inputUser);
 
   createJWT(newUser.id, res);
-  res.status(StatusCodes.CREATED).json({ data: sanitizeUserOutput(newUser), errors: [] });
+  res.status(StatusCodes.CREATED).json({ user: sanitizeUserOutput(newUser), errors: [] });
 };
 
 export const handleLoginUser = async (req: Request, res: Response) => {
@@ -45,7 +44,7 @@ export const handleLoginUser = async (req: Request, res: Response) => {
 
   createJWT(user.id, res);
   res.status(StatusCodes.OK).json(
-    { data: sanitizeUserOutput(user), errors: [] },
+    { user: sanitizeUserOutput(user), errors: [] },
   );
 };
 
@@ -69,4 +68,11 @@ export const handleResetPassword = async (req: Request, res: Response) => {
   await resetPassword(resetToken, password);
 
   res.status(StatusCodes.ACCEPTED).end();
+};
+
+export const handleLogoutUser = async (_: Request, res: Response) => {
+  res
+    .cookie('Bearer', 'logged_out', { maxAge: 10 * 1000, httpOnly: true, secure: false })
+    .status(StatusCodes.OK)
+    .end();
 };

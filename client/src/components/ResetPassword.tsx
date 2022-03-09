@@ -2,14 +2,17 @@ import {
   Button, Group, Paper, TextInput, Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/hooks';
+import { useNotifications } from '@mantine/notifications';
 import { passwordValidator } from '@utils/validators';
 import axios from 'axios';
 import React from 'react';
-import { IoLockClosed } from 'react-icons/io5';
+import { IoCheckmark, IoClose, IoLockClosed } from 'react-icons/io5';
 import { useParams } from 'react-router';
 
 const ResetPassword: React.FC = () => {
   const { token } = useParams();
+
+  const notifications = useNotifications();
 
   const form = useForm({
     initialValues: {
@@ -22,15 +25,29 @@ const ResetPassword: React.FC = () => {
     },
     validationRules: {
       password: (value) => passwordValidator(value),
-      confirmPassword: (value, values) => value === values?.confirmPassword,
+      confirmPassword: (value, values) => value === values?.password,
     },
   });
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
       await axios.post('/users/password-reset', { token, password: values.password });
-    } catch (err) {
-      // TODO
+      notifications.showNotification({
+        title: 'Password Reset!',
+        message: 'Redirecting you to the home page',
+        color: 'green',
+        icon: <IoCheckmark />,
+        onClose: () => { window.location.href = '/'; },
+      });
+    } catch (err: any) {
+      const res = err?.response;
+      const baseNotification = { color: 'red', icon: <IoClose /> };
+
+      if (res?.status === 403) {
+        notifications.showNotification({ ...baseNotification, title: 'Invalid Token!', message: 'The reset token is invalid' });
+      } else {
+        notifications.showNotification({ ...baseNotification, title: 'Uh OH!', message: 'Something went wrong here...' });
+      }
     }
   };
 
