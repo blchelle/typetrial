@@ -25,6 +25,7 @@ describe('user', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
     passwordChangedAt: new Date(),
+    Results: [],
   };
 
   describe('validateSignupInput', () => {
@@ -156,10 +157,10 @@ describe('user', () => {
     const validInput = { identifier: 'testuser', password: 'abc123ABC' };
 
     it('returns the user by email identifier', async () => {
-      dbMock.user.findUnique.mockResolvedValue(mockUser);
+      dbMock.user.findUnique.mockResolvedValue({ ...mockUser });
       const user = await validateLoginInput({ ...validInput });
 
-      expect(user).to.deep.equal(mockUser);
+      expect(user).to.deep.equal({ ...mockUser, Results: { wpm: 0, count: 0 } });
     });
 
     it('returns an error for no identifier', async () => {
@@ -211,9 +212,9 @@ describe('user', () => {
 
   describe('sanitizeUserOutput', () => {
     it('removes password and role from user', () => {
-      const sanitized = sanitizeUserOutput(mockUser);
+      const sanitized = sanitizeUserOutput({ ...mockUser, Results: { wpm: 0, count: 0 } });
 
-      const expected: any = { ...mockUser };
+      const expected: any = { ...mockUser, Results: { wpm: 0, count: 0 } };
       delete expected.password;
       delete expected.role;
       delete expected.passwordChangedAt;

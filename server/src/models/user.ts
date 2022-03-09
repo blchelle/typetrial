@@ -98,13 +98,19 @@ const validateIdentifierForLogin = async (identifier: any) => {
     throw new APIError('invalid input', StatusCodes.UNPROCESSABLE_ENTITY, error);
   }
 
-  const existingUser = await db.user.findUnique({ where: { [identifierField]: identifier } });
+  const existingUser = await db.user.findUnique({
+    where: { [identifierField]: identifier },
+    include: { Results: { select: { wpm: true }, orderBy: { Race: { createdAt: 'asc' } } } },
+  });
+
   if (!existingUser) {
     const error = new FieldError(identifierField, identifier, 'is not associated with an account');
     throw new APIError('invalid input', StatusCodes.NOT_FOUND, [error]);
   }
 
-  return existingUser;
+  const wpm = existingUser.Results.slice(0, 10).reduce((avg, res, i) => avg + ((avg * i) + res.wpm) / (i + 1), 0);
+
+  return { ...existingUser, Results: { wpm, count: existingUser.Results.length } };
 };
 
 const validateResetToken = async (tokenId: any) => {
@@ -165,13 +171,13 @@ export const validateResetPasswordInput = async (input: any) => {
 // Removes fields that should not be included in an HTTP response
 // Password is removed because we don't want to expose passwords to the user (even hashed)
 // Role is removed because 99.9% our users will be USER, the ADMINS know who they are
-export const sanitizeUserOutput = (user: User) => {
+export const sanitizeUserOutput = (user: User & { Results: { wpm: number, count: number} }) => {
   const {
-    id, email, username, createdAt, updatedAt,
+    id, email, username, createdAt, updatedAt, Results,
   } = user;
 
   return {
-    id, email, username, createdAt, updatedAt,
+    id, email, username, createdAt, updatedAt, Results,
   };
 };
 

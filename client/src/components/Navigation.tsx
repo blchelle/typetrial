@@ -38,8 +38,14 @@ const Navigation: React.FC = () => {
               <Group direction="column" spacing={0} align="center">
                 <Text size="sm" weight="bold">{user.username}</Text>
                 <Group spacing={2}>
-                  <Badge size="xs">WPM: 0</Badge>
-                  <Badge size="xs">Races: 0</Badge>
+                  <Badge size="xs">
+                    WPM:
+                    {user.Results.wpm}
+                  </Badge>
+                  <Badge size="xs">
+                    Races:
+                    {user.Results.count}
+                  </Badge>
                 </Group>
               </Group>
               <Button size="md" color="blue" variant="light"><IoStatsChart /></Button>
