@@ -13,10 +13,18 @@ interface JWTConfig {
   secure: boolean;
 }
 
+interface MailerConfig {
+  apiKey: string
+  username: string
+  resetPasswordTemplateId: string
+}
+
 interface Environment {
+  baseClientUrl: string,
   clientUrls: string[];
   rateLimits: RateLimitConfig[];
   jwt: JWTConfig;
+  mailer?: MailerConfig // Wont exist in development
 }
 
 // Must load the .env file before initializing the environment
@@ -24,6 +32,7 @@ dotenv.config({ path: `${__dirname}/../../.env.${process.env.NODE_ENV as NodeEnv
 
 const environment: { [_ in NodeEnv]: Environment } = {
   development: {
+    baseClientUrl: 'http://localhost:3000',
     clientUrls: ['http://localhost:3000'],
     rateLimits: [
       {
@@ -42,6 +51,7 @@ const environment: { [_ in NodeEnv]: Environment } = {
     },
   },
   production: {
+    baseClientUrl: 'http://3.16.27.120:8080',
     clientUrls: [],
     rateLimits: [
       {
@@ -57,6 +67,11 @@ const environment: { [_ in NodeEnv]: Environment } = {
       secret: process.env.JWT_SECRET!,
       expiryTime: 60 * 60 * 24 * 7, // 7 Days
       secure: true,
+    },
+    mailer: {
+      apiKey: process.env.MAILER_API_KEY!,
+      username: process.env.MAILER_USERNAME!,
+      resetPasswordTemplateId: 'd-803b3420888a4b16be882f3231efbc65',
     },
   },
 };

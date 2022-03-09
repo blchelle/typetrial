@@ -1,28 +1,42 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import {
   Button, Group, TextInput,
 } from '@mantine/core';
-import { emailValidator } from '@utils/validators';
+import { blankValidator } from '@utils/validators';
 import { useForm } from '@mantine/hooks';
-import { IoAt } from 'react-icons/io5';
+import { IoPerson } from 'react-icons/io5';
+import axios from '../config/axios';
 
 const ForgotPassword: React.FC = () => {
   const form = useForm({
-    initialValues: { email: '' },
-    validationRules: { email: (value) => emailValidator(value) },
-    errorMessages: { email: 'email must be a valid' },
+    initialValues: { identifier: '' },
+    validationRules: { identifier: (value) => blankValidator(value) },
+    errorMessages: { identifier: 'identifier must be valid' },
   });
 
+  const handleSubmit = async (values: typeof form.values) => {
+    try {
+      await axios.post('/users/password-reset-email', { ...values });
+    } catch (err) {
+      // TODO
+    }
+  };
+
   return (
-    <form onSubmit={form.onSubmit(() => {})}>
+    <form onSubmit={form.onSubmit(handleSubmit)}>
       <Group direction="column" align="stretch">
-        <TextInput label="Email Address" placeholder="Your email address" icon={<IoAt />} {...form.getInputProps('email')} required />
+        <TextInput
+          label="Username or Email Address"
+          required
+          icon={<IoPerson />}
+          placeholder="Your username or email"
+          {...form.getInputProps('identifier')}
+        />
         <Group position="apart">
           <div />
-          <Button>Send Email</Button>
+          <Button type="submit">Send Email</Button>
         </Group>
-
       </Group>
     </form>
   );
