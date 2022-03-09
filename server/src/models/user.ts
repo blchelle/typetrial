@@ -1,7 +1,10 @@
-import { User } from '@prisma/client';
+import { User, PasswordResetToken } from '@prisma/client';
 import { StatusCodes } from 'http-status-codes';
+import argon2 from 'argon2';
+
 import APIError from '../errors/apiError';
 import FieldError from '../errors/fieldError';
+import { ForbiddenError } from '../errors/forbiddenError';
 import db from '../prismaClient';
 
 interface SignupInput {
@@ -13,6 +16,7 @@ interface SignupInput {
 const EMAIL_REGEX = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const USERNAME_REGEX = /^[a-z0-9_-]{0,16}$/;
 const PASSWORD_REGEX = /^[a-zA-Z0-9%+'!#$^?:,~_-]{8,32}$/;
+const UUID_REGEX = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/;
 
 const validateEmailForSignup = async (email: any) => {
   const errors = [];
@@ -103,6 +107,16 @@ const validateIdentifierForLogin = async (identifier: any) => {
   return existingUser;
 };
 
+const validateResetToken = async (tokenId: any) => {
+  if (!tokenId || typeof tokenId !== 'string' || !UUID_REGEX.test(tokenId)) throw new ForbiddenError();
+
+  // Search for the token, it must not be expired
+  const token = await db.passwordResetToken.findFirst({ where: { id: tokenId, expiresAt: { gt: new Date() } } });
+  if (!token) throw new ForbiddenError();
+
+  return token;
+};
+
 /**
  * Validates that the email, username, password are all valid.
  * Throws a detailed error if any are invalid
@@ -129,6 +143,25 @@ export const validateLoginInput = async (input: any) => {
   return validateIdentifierForLogin(identifier);
 };
 
+export const validateSendResetPasswordInput = async (input: any) => {
+  const { identifier } = input;
+
+  return validateIdentifierForLogin(identifier);
+};
+
+export const validateResetPasswordInput = async (input: any) => {
+  if (typeof input !== 'object') throw new APIError('missing request body', StatusCodes.UNPROCESSABLE_ENTITY);
+
+  const { password, token } = input;
+
+  const resetToken = await validateResetToken(token);
+
+  const { errors: passwordErrors, status: passwordStatus } = validatePassword(password);
+  if (passwordErrors.length > 0) throw new APIError('invalid password', passwordStatus, passwordErrors);
+
+  return resetToken;
+};
+
 // Removes fields that should not be included in an HTTP response
 // Password is removed because we don't want to expose passwords to the user (even hashed)
 // Role is removed because 99.9% our users will be USER, the ADMINS know who they are
@@ -145,3 +178,31 @@ export const sanitizeUserOutput = (user: User) => {
 export const signupUser = async (inputUser: SignupInput) => db.user.create({ data: { ...inputUser } });
 
 export const getUserById = async (id: number) => db.user.findUnique({ where: { id } });
+
+export const createResetPasswordToken = async (user: User) => {
+  const now = new Date();
+  const expiryTime = 1000 * 60 * 15; // 15 Minutes
+  const expiresAt = new Date(now.getTime() + expiryTime);
+
+  // Prevent a users from creating simultaneous tokens for resetting
+  const existingToken = await db.passwordResetToken.findFirst({
+    where: { expiresAt: { gt: now, lte: expiresAt }, userId: user.id },
+  });
+  if (existingToken) return existingToken;
+
+  // Otherwise we are safe to create a new token for them
+  return db.passwordResetToken.create({ data: { expiresAt, userId: user.id } });
+};
+
+export const resetPassword = async (token: PasswordResetToken, password: string) => {
+  const hashedPassword = await argon2.hash(password);
+
+  await db.user.update({
+    where: { id: token.userId },
+    data: {
+      password: hashedPassword,
+      passwordChangedAt: new Date(),
+      PasswordResetToken: { delete: { id: token.id } },
+    },
+  });
+};

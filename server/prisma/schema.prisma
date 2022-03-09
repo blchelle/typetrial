@@ -20,7 +20,8 @@ model User {
   updatedAt         DateTime  @updatedAt
   passwordChangedAt DateTime?
 
-  Results Result[]
+  Results            Result[]
+  PasswordResetToken PasswordResetToken[]
 }
 
 model Passage {
@@ -52,6 +53,14 @@ model Result {
 
   @@unique([userId, raceId])
   @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    Int
+  expiresAt DateTime
+
+  User User @relation(fields: [userId], references: [id])
 }
 
 enum Role {

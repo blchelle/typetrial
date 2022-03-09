@@ -12,7 +12,7 @@ import {
   validateSignupInput,
 } from '../../models/user';
 
-import dbMock from '../../prismaMock';
+import dbMock from '../prismaMock';
 import { expectThrowsAsync } from '../specUtils';
 
 describe('user', () => {
