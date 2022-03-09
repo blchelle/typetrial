@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 
 import {
-  Alert, Anchor, Button, Group, ModalProps, TextInput,
+  Anchor, Button, Group, ModalProps, TextInput,
 } from '@mantine/core';
 import { useForm } from '@mantine/hooks';
 import { useModals } from '@mantine/modals';
 import {
-  IoAt, IoCloseCircle, IoLockClosed, IoPerson,
+  IoAt, IoCheckmark, IoClose, IoLockClosed, IoPerson,
 } from 'react-icons/io5';
 
 import { emailValidator, passwordValidator, usernameValidator } from '@utils/validators';
+import { useNotifications } from '@mantine/notifications';
 import axios from '../config/axios';
 import ForgotPassword from './ForgotPassword';
 
@@ -21,7 +22,6 @@ interface AuthFormProps {
 
 const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
   const [loading, setLoading] = useState(false);
-  const [failed, setFailed] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -50,6 +50,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
   });
 
   const modals = useModals();
+  const notifications = useNotifications();
 
   const openModal = (authType: AuthType) => {
     if (authType !== 'forgotPassword') modals.closeAll();
@@ -61,13 +62,29 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
     setLoading(true);
 
     try {
-      await axios.post(`/users/${type}`, { ...values });
+      const res = await axios.post(`/users/${type}`, { ...values });
+      const { user } = res.data;
+
+      localStorage.setItem('user', JSON.stringify(user));
+      notifications.showNotification({
+        title: type === 'login' ? 'Welcome back!' : "You're In!",
+        color: 'green',
+        icon: <IoCheckmark />,
+        message: type === 'login' ? 'You successfully logged in' : 'You successfully signed up',
+      });
+      modals.closeAll();
     } catch (err: any) {
       const resError = err?.response?.data?.error;
       if (!resError) {
-        setFailed(true);
+        notifications.showNotification({
+          title: 'Uh OH!',
+          color: 'red',
+          icon: <IoClose />,
+          message: 'Something went wrong here...',
+        });
       } else {
         const { fieldErrors } = resError;
+
         fieldErrors.forEach((fieldError: {field: keyof typeof form['values'], message: string}) => {
           const { field, message } = fieldError;
           const formFieldName = (field === 'username' || field === 'email') && type === 'login' ? 'identifier' : field;
@@ -152,17 +169,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
             { type === 'login' ? 'Login' : 'Signup' }
           </Button>
         </Group>
-        { failed && (
-        <Alert
-          color="red"
-          icon={<IoCloseCircle />}
-          title="Something went wrong!"
-          withCloseButton
-          onClose={() => setFailed(false)}
-        >
-          Something went wrong
-        </Alert>
-        )}
       </Group>
     </form>
   );

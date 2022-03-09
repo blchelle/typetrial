@@ -5,7 +5,8 @@ import {
 } from '@mantine/core';
 import { blankValidator } from '@utils/validators';
 import { useForm } from '@mantine/hooks';
-import { IoPerson } from 'react-icons/io5';
+import { IoCheckmark, IoClose, IoPerson } from 'react-icons/io5';
+import { useNotifications } from '@mantine/notifications';
 import axios from '../config/axios';
 
 const ForgotPassword: React.FC = () => {
@@ -15,11 +16,34 @@ const ForgotPassword: React.FC = () => {
     errorMessages: { identifier: 'identifier must be valid' },
   });
 
+  const notifications = useNotifications();
+
   const handleSubmit = async (values: typeof form.values) => {
     try {
       await axios.post('/users/password-reset-email', { ...values });
-    } catch (err) {
-      // TODO
+
+      notifications.showNotification({
+        title: 'Email Sent!',
+        color: 'green',
+        icon: <IoCheckmark />,
+        message: 'You should see the email in your inbox shortly',
+      });
+    } catch (err: any) {
+      const resError = err?.response?.data?.error;
+      if (!resError) {
+        notifications.showNotification({
+          title: 'Uh Oh!',
+          color: 'red',
+          icon: <IoClose />,
+          message: 'Something went wrong here...',
+        });
+      } else {
+        const { fieldErrors } = resError;
+        fieldErrors.forEach((fieldError: {field: typeof form.values, message: string}) => {
+          const { field, message } = fieldError;
+          form.setFieldError('identifier', `${field} ${message}`);
+        });
+      }
     }
   };
 
