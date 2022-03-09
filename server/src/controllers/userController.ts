@@ -24,7 +24,7 @@ export const handleSignupUser = async (req: Request, res: Response) => {
   const hashedPassword = await argon2.hash(password);
   const inputUser = { email, username, password: hashedPassword };
 
-  const newUser = await signupUser(inputUser);
+  const newUser = { ...(await signupUser(inputUser)), Results: { wpm: 0, count: 0 } };
 
   createJWT(newUser.id, res);
   res.status(StatusCodes.CREATED).json({ user: sanitizeUserOutput(newUser), errors: [] });
