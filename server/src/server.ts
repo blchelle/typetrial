@@ -22,7 +22,7 @@ interface UserInfo {
 
 const { app } = expressWs(express());
 
-const ws_handler = new WsHandler(2);
+const wsHandler = new WsHandler(2);
 
 const initMiddleware = () => {
   app.use(bodyParser.json());
@@ -51,16 +51,16 @@ const initMiddleware = () => {
 app.ws('/api/connect/:user', (ws, req: Request) => {
   writeLog({ event: 'user connected to websocket', user: req.params.user }, 'info');
 
-  const room = ws_handler.connect_user_to_room(req.params.user, ws);
+  const room = wsHandler.connect_user_to_room(req.params.user, ws);
   const userInfo: UserInfo = { username: req.params.user, room };
 
   ws.on('message', (msg) => {
-    ws_handler.broadcast_message(userInfo.room, userInfo.room, msg.toString(), true)
+    wsHandler.broadcast_message(userInfo.room, userInfo.room, msg.toString(), true);
   });
 
   ws.on('close', () => {
     writeLog({ event: 'websocket closed', user: userInfo.username }, 'info');
-    ws_handler.disconnect_user_from_room(userInfo.username, userInfo.room);
+    wsHandler.disconnect_user_from_room(userInfo.username, userInfo.room);
   });
 });
 
