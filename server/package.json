@@ -6,7 +6,7 @@
     "dev": "NODE_ENV=development ts-node-dev --no-notify --exit-child ./src/server.ts",
     "prod": "tsc && NODE_ENV=production pm2 startOrRestart pm2.config.js",
     "compile": "tsc",
-    "lint": "eslint src --ext .js,.ts",
+    "lint": "eslint src --ext .js,.ts --fix",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "dotenv -e .env.development -- prisma migrate dev",
     "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate dev",
@@ -16,7 +16,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@prisma/client": "^3.9.2",
+    "@prisma/client": "^3.10.0",
     "@sendgrid/mail": "^7.6.1",
     "argon2": "^0.28.4",
     "body-parser": "^1.19.1",
