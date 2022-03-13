@@ -15,5 +15,10 @@
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
 
-  "eslint.validate": ["javascript", "typescript", "typescriptreact"]
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "typescriptreact"
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

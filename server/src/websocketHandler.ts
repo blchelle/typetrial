@@ -1,6 +1,15 @@
 import { v4 } from 'uuid';
 import { WebSocket } from 'ws';
 
+interface Message {
+  type: string;
+  msg: string;
+}
+
+const NEWUSER = 'new_user';
+const USERS = 'users';
+const REMUSER = 'remove_user';
+
 class WsHandler {
   public_rooms: Map<string, string[]>;
 
@@ -20,25 +29,32 @@ class WsHandler {
     this.maxUsers = maxUsers;
   }
 
-  broadcast_message(roomid: string, sender: string, message: string, isPublic: boolean) {
+  broadcast_message(roomid: string, message: Message, isPublic: boolean) {
     const users = isPublic ? this.public_rooms.get(roomid) : this.private_rooms.get(roomid);
     if (users) {
       users.forEach((user) => {
-        this.user_info.get(user)?.send(JSON.stringify({ sender, data: message }));
+        this.user_info.get(user)?.send(JSON.stringify(message));
       });
     }
   }
 
   connect_user_to_room(user: string, ws: WebSocket, roomid: string = '') {
+    const isPublic = roomid === '';
+    const room = isPublic ? this.get_room() : roomid;
+    const newUserMessage: Message = { type: NEWUSER, msg: user };
+    const users = isPublic ? this.public_rooms.get(room) : this.private_rooms.get(room);
+
+    this.broadcast_message(room, newUserMessage, isPublic);
+    ws.send(JSON.stringify({ type: USERS, msg: JSON.stringify(users) }));
+
     this.user_info.set(user, ws);
 
-    if (roomid === '') {
-      const room = this.get_room();
+    if (isPublic) {
       this.public_rooms.get(room)?.push(user);
-      return room;
+    } else {
+      this.private_rooms.get(room)?.push(user);
     }
-    this.private_rooms.get(roomid)?.push(user);
-    return roomid;
+    return room;
   }
 
   disconnect_user_from_room(user: string, roomid: string) {
@@ -48,8 +64,11 @@ class WsHandler {
 
     if (index !== undefined && index > -1) {
       this.public_rooms.get(roomid)?.splice(index, 1);
+
       if (this.public_rooms.get(roomid)?.length === 0) {
         this.delete_room(roomid);
+      } else {
+        this.broadcast_message(roomid, { type: REMUSER, msg: JSON.stringify(this.public_rooms.get(roomid)) }, true);
       }
 
       return;
@@ -61,6 +80,8 @@ class WsHandler {
       this.private_rooms.get(roomid)?.splice(index, 1);
       if (this.private_rooms.get(roomid)?.length === 0) {
         this.delete_room(roomid);
+      } else {
+        this.broadcast_message(roomid, { type: REMUSER, msg: JSON.stringify(this.public_rooms.get(roomid)) }, false);
       }
     }
   }
