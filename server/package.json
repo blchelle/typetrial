@@ -17,7 +17,7 @@
     "test": "dotenv -e .env.test -- jest -i"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node src/config/seed.ts"
   },
   "license": "MIT",
   "dependencies": {
