@@ -12,7 +12,12 @@
     "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate dev",
     "prisma:studio:dev": "dotenv -e .env.development -- prisma studio",
     "prisma:studio:prod": "dotenv -e .env.production -- prisma studio",
+    "prisma:reset:dev": "dotenv -e .env.development -- prisma migrate reset dev",
+    "prisma:reset:prod": "dotenv -e .env.production -- prisma migrate reset dev",
     "test": "dotenv -e .env.test -- jest -i"
+  },
+  "prisma": {
+    "seed": "ts-node src/config/seed.ts"
   },
   "license": "MIT",
   "dependencies": {

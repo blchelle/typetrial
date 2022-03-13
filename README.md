@@ -47,22 +47,28 @@ yarn prisma:generate
 4. Migrate prisma schema to mysql database
 
 ```sh
-yarn prisma:migrate
+yarn prisma:migrate:dev
 ```
 
 5. Start prisma studio to view the database in a we UI **(Optional)**
 
 ```sh
-yarn prisma:studio
+yarn prisma:studio:dev
 ```
 
-6. Run the server in development mode
+6. Reset database to a seeded sample db with existing races and users **(Optional)**
+
+```sh
+yarn prisma:reset:dev
+```
+
+7. Run the server in development mode
 
 ```sh
 yarn dev
 ```
 
-7. Send a `GET` request to `localhost:8080/api/random` to check if it's running.
+8. Send a `GET` request to `localhost:8080/api/random` to check if it's running.
 
 ```sh
 curl localhost:8080/api/random
