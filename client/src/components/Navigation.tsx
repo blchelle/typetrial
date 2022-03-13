@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Button, Group, Header, Title, Text, Badge,
 } from '@mantine/core';
+import { Link } from 'react-router-dom';
 
 import { useModals } from '@mantine/modals';
 import { AuthModals, AuthType } from '@components/AuthForm';
@@ -48,7 +49,7 @@ const Navigation: React.FC = () => {
                   </Badge>
                 </Group>
               </Group>
-              <Button size="md" color="blue" variant="light"><IoStatsChart /></Button>
+              <Link to="/profile"><Button size="md" color="blue" variant="light"><IoStatsChart /></Button></Link>
               <Button size="md" color="gray" variant="light"><IoSettings /></Button>
             </Group>
             <Button color="gray" variant="light" size="md" onClick={logoutUser}>Logout</Button>

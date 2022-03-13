@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuid } from 'uuid';
+import axios from '@config/axios';
+import { Button } from '@mantine/core';
 
 interface Message {
     sender: string;
@@ -7,6 +9,13 @@ interface Message {
 }
 
 const Chat: React.FC = () => {
+  const [randomServerNumber, setRandomServerNumber] = useState(null);
+
+  const sendRequest = async () => {
+    const res = await axios.get('/random');
+    setRandomServerNumber(res.data);
+  };
+
   const [username, setUsername] = useState('');
   const [currentText, setCurrentText] = useState('');
   const [websocket, setWebsocket] = useState<WebSocket>();
@@ -71,13 +80,19 @@ const Chat: React.FC = () => {
       </div>
       <input
         className="form-control"
-        placeholder="Type & hit enter"
+        placeholder="Type &amp; hit enter"
         onChange={handleInputChange}
         value={currentText}
       />
       <button className="bg-primary text-white p-4 rounded-lg mt-10" onClick={sendMsg}>
         Send
       </button>
+      <Button mt={16} onClick={sendRequest}>
+        Click Me to Ping the API
+      </Button>
+      {randomServerNumber && (
+        <div>{randomServerNumber}</div>
+      )}
     </div>
   );
 };

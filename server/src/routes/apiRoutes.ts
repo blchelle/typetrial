@@ -7,6 +7,8 @@ import { writeLog } from '../utils/log';
 
 import passageRoutes from './passageRoutes';
 import userRoutes from './userRoutes';
+import resultRoutes from './resultRoutes';
+import raceRoutes from './raceRoutes';
 
 const router = express.Router({ mergeParams: true });
 
@@ -17,6 +19,8 @@ router.get('/random', (req: Request, res: Response) => {
 
 router.use('/passages', passageRoutes);
 router.use('/users', userRoutes);
+router.use('/results', resultRoutes);
+router.use('/race', raceRoutes);
 
 // Funnel all routes that don't exist to a 404 NOT FOUND
 router.all('*', (req, _res, next) => next(

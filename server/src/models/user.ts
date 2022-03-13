@@ -108,7 +108,8 @@ const validateIdentifierForLogin = async (identifier: any) => {
     throw new APIError('invalid input', StatusCodes.NOT_FOUND, [error]);
   }
 
-  const wpm = existingUser.Results.slice(0, 10).reduce((avg, res, i) => avg + ((avg * i) + res.wpm) / (i + 1), 0);
+  const recentResults = existingUser.Results.slice(0, 10);
+  const wpm = recentResults.reduce((avg, res) => avg + res.wpm, 0) / recentResults.length;
 
   return { ...existingUser, Results: { wpm, count: existingUser.Results.length } };
 };
