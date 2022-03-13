@@ -109,7 +109,12 @@ const validateIdentifierForLogin = async (identifier: any) => {
   }
 
   const recentResults = existingUser.Results.slice(0, 10);
-  const wpm = recentResults.reduce((avg, res) => avg + res.wpm, 0) / recentResults.length;
+  let wpm;
+  if (recentResults.length === 0) {
+    wpm = 0;
+  } else {
+    wpm = recentResults.reduce((avg, res) => avg + res.wpm, 0) / recentResults.length;
+  }
 
   return { ...existingUser, Results: { wpm, count: existingUser.Results.length } };
 };
