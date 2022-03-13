@@ -50,7 +50,10 @@ const WaitingRoom: React.FC = () => {
   };
 
   useEffect(() => {
-    const name = uuid();
+    const lsUser = localStorage.getItem('user');
+    const user = lsUser ? JSON.parse(lsUser) : null;
+    const name = user?.username ?? uuid();
+
     createSocket(name);
     setUsername(name);
     setUserList([name]);
