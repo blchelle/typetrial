@@ -20,6 +20,7 @@ module.exports = {
     describe: true,
     it: true,
   },
+  ignorePatterns: ['scripts/**/*.ts'],
   rules: {
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-shadow': ['error'],

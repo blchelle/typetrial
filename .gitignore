@@ -5,4 +5,6 @@ dist-ssr
 *.local
 logs
 
-.env.production
+.env.*
+!.env.development
+!.env.test
