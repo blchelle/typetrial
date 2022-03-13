@@ -31,7 +31,7 @@ const RaceInfo: React.FC = () => {
   const whiteBg = { backgroundColor: colors.gray[0] };
 
   useEffect(() => {
-    axios.get(`/race/get/${raceId}`).then((res) => {
+    axios.get(`/races/get/${raceId}`).then((res) => {
       setRace(res.data.race);
     });
   }, []);

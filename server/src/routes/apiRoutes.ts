@@ -20,7 +20,7 @@ router.get('/random', (req: Request, res: Response) => {
 router.use('/passages', passageRoutes);
 router.use('/users', userRoutes);
 router.use('/results', resultRoutes);
-router.use('/race', raceRoutes);
+router.use('/races', raceRoutes);
 
 // Funnel all routes that don't exist to a 404 NOT FOUND
 router.all('*', (req, _res, next) => next(
