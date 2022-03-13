@@ -67,7 +67,7 @@ const WaitingRoom: React.FC = () => {
 
   return (
     <List>
-      {userList.map((user) => <ListItem>{user}</ListItem>)}
+      {userList.map((user) => <ListItem key={user}>{user}</ListItem>)}
     </List>
   );
 };
