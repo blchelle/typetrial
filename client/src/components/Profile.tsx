@@ -1,5 +1,5 @@
 import {
-  Container, Table,
+  Container, Table, useMantineTheme,
 } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,8 +7,6 @@ import {
   LineChart, Line, CartesianGrid, YAxis, Label,
 } from 'recharts';
 import axios from '../config/axios';
-
-const MANTINE_FONTS = '-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji';
 
 interface Result {
   id: number,
@@ -21,6 +19,8 @@ interface Result {
 }
 
 const Profile: React.FC = () => {
+  const { fontFamily } = useMantineTheme();
+
   const [results, setResults] = useState<Result[]>([]);
   const navigate = useNavigate();
 
@@ -53,8 +53,8 @@ const Profile: React.FC = () => {
       <LineChart width={600} height={300} data={results}>
         <Line type="monotone" dataKey="wpm" stroke="#8884d8" />
         <CartesianGrid stroke="#ccc" />
-        <YAxis fontFamily={MANTINE_FONTS}>
-          <Label angle={-90} position="insideLeft" fontFamily={MANTINE_FONTS}>WPM</Label>
+        <YAxis fontFamily={fontFamily}>
+          <Label angle={-90} position="insideLeft" fontFamily={fontFamily}>WPM</Label>
         </YAxis>
       </LineChart>
       )}
