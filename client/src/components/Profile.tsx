@@ -29,7 +29,7 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     axios.get(`/results/user/${user.id}`).then((res) => {
-      setResults(res.data.results);
+      setResults(res.data.data);
     });
   }, []);
 

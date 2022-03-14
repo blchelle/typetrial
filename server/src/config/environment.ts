@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-export type NodeEnv = 'production' | 'development';
+export type NodeEnv = 'development'| 'production' | 'test';
 
 interface RateLimitConfig {
   maxRequests: number;
@@ -72,6 +72,21 @@ const environment: { [_ in NodeEnv]: Environment } = {
       apiKey: process.env.MAILER_API_KEY!,
       username: process.env.MAILER_USERNAME!,
       resetPasswordTemplateId: 'd-803b3420888a4b16be882f3231efbc65',
+    },
+  },
+  test: {
+    baseClientUrl: '',
+    clientUrls: [],
+    rateLimits: [
+      {
+        maxRequests: Number.MAX_SAFE_INTEGER,
+        timeWindow: 1000, // 1 Second
+      },
+    ],
+    jwt: {
+      secret: process.env.JWT_SECRET!,
+      expiryTime: 60 * 60 * 24 * 365, // 1 Year
+      secure: false,
     },
   },
 };

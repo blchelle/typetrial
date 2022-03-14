@@ -5,15 +5,14 @@ import rateLimit from 'express-rate-limit';
 import expressWs from 'express-ws';
 import path from 'path';
 import hpp from 'hpp';
+import xss from 'xss-clean';
+
 import WsHandler from './websocketHandler';
-import environment from './config/environment';
+import environment, { NodeEnv } from './config/environment';
 import apiRoutes from './routes/apiRoutes';
 import { openLogFiles, writeLog } from './utils/log';
 import db from './prismaClient';
 import errorMiddleware from './middlewares/errorMiddleware';
-
-// Has to be done in a 'require' because there are no type declarations
-const xss = require('xss-clean');
 
 interface UserInfo {
   username: string;
@@ -75,9 +74,11 @@ const main = async () => {
 
   app.use(errorMiddleware);
 
-  app.listen(8080, () => {
-    writeLog({ event: 'server started on port 8080', user: 'server' }, 'info');
-  });
+  if (process.env.NODE_ENV as NodeEnv !== 'test') {
+    app.listen(8080, () => {
+      writeLog({ event: 'server started on port 8080', user: 'server' }, 'info');
+    });
+  }
 };
 
 main().finally(async () => { await db.$disconnect(); });

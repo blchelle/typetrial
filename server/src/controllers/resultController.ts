@@ -8,7 +8,7 @@ export const handleGetResult = async (req: Request, res: Response) => {
   const { resultId } = req.params;
   const result = await getResult(resultId);
 
-  res.status(StatusCodes.OK).json({ result, errors: [] });
+  res.status(StatusCodes.OK).json({ data: result, errors: [] });
 };
 
 export const handleGetUserResults = async (req: Request, res: Response) => {
@@ -18,5 +18,5 @@ export const handleGetUserResults = async (req: Request, res: Response) => {
   const countInt = count ? parseInt(count, 10) : RESULT_PAGE_SIZE;
   const results = await getUserResults(userId, startInt, countInt);
 
-  res.status(StatusCodes.OK).json({ results, errors: [] });
+  res.status(StatusCodes.OK).json({ data: results, errors: [] });
 };
