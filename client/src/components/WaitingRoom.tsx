@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuid } from 'uuid';
 import { List, ListItem } from '@mantine/core';
+import useUser from '@hooks/useUser';
 
 interface Response {
     type: string;
     msg: string;
 }
 
-const NEWUSER = 'new_user';
+const NEW_USER = 'new_user';
 const USERS = 'users';
-const REMUSER = 'remove_user';
+const REMOVE_USER = 'remove_user';
 
 const WaitingRoom: React.FC = () => {
   const [userList, setUserList] = useState<string[]>([]);
@@ -17,14 +18,14 @@ const WaitingRoom: React.FC = () => {
   const [websocket, setWebsocket] = useState<WebSocket>();
   const [lastMessage, setLastMessage] = useState<Response>({ type: '', msg: '' });
 
-  const proccessMessage = (resp: Response) => {
-    if (resp.type === NEWUSER) {
+  const processMessage = (resp: Response) => {
+    if (resp.type === NEW_USER) {
       const users = [...userList, resp.msg];
       setUserList(users);
     } else if (resp.type === USERS) {
       const users = JSON.parse(resp.msg);
       setUserList([username, ...users]);
-    } else if (resp.type === REMUSER) {
+    } else if (resp.type === REMOVE_USER) {
       const users = JSON.parse(resp.msg);
       const index = users.indexOf(username);
       users.splice(index, 1);
@@ -50,8 +51,7 @@ const WaitingRoom: React.FC = () => {
   };
 
   useEffect(() => {
-    const lsUser = localStorage.getItem('user');
-    const user = lsUser ? JSON.parse(lsUser) : null;
+    const user = useUser();
     const name = user?.username ?? uuid();
 
     createSocket(name);
@@ -61,7 +61,7 @@ const WaitingRoom: React.FC = () => {
 
   useEffect(() => {
     if (lastMessage.msg !== '') {
-      proccessMessage(lastMessage);
+      processMessage(lastMessage);
     }
   }, [lastMessage]);
 

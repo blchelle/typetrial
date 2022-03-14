@@ -1,12 +1,14 @@
-import {
-  Container, Table, useMantineTheme,
-} from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Container, Table, useMantineTheme,
+} from '@mantine/core';
+import {
   LineChart, Line, CartesianGrid, YAxis, Label,
 } from 'recharts';
-import axios from '../config/axios';
+
+import useUser from '@hooks/useUser';
+import axios from '@config/axios';
 
 interface Result {
   id: number,
@@ -24,8 +26,7 @@ const Profile: React.FC = () => {
   const [results, setResults] = useState<Result[]>([]);
   const navigate = useNavigate();
 
-  const lsUser = localStorage.getItem('user');
-  const user = lsUser ? JSON.parse(lsUser) : null;
+  const user = useUser();
 
   useEffect(() => {
     axios.get(`/results/user/${user.id}`).then((res) => {
