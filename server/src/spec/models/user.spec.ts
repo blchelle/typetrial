@@ -218,6 +218,8 @@ describe('user', () => {
       delete expected.password;
       delete expected.role;
       delete expected.passwordChangedAt;
+      delete expected.createdAt;
+      delete expected.updatedAt;
 
       expect(sanitized).to.deep.equal(expected);
     });

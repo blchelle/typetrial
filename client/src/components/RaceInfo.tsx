@@ -32,7 +32,7 @@ const RaceInfo: React.FC = () => {
 
   useEffect(() => {
     axios.get(`/races/get/${raceId}`).then((res) => {
-      setRace(res.data.race);
+      setRace(res.data.data);
     });
   }, []);
 

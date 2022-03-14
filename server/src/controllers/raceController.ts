@@ -6,5 +6,5 @@ export const handleGetRace = async (req: Request, res: Response) => {
   const { raceId } = req.params;
   const race = await getRace(raceId);
 
-  res.status(StatusCodes.OK).json({ race, errors: [] });
+  res.status(StatusCodes.OK).json({ data: race, errors: [] });
 };
