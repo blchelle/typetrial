@@ -2,8 +2,6 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { getResult, getUserResults } from '../models/result';
 
-const RESULT_PAGE_SIZE = 10;
-
 export const handleGetResult = async (req: Request, res: Response) => {
   const { resultId } = req.params;
   const result = await getResult(resultId);
@@ -12,10 +10,12 @@ export const handleGetResult = async (req: Request, res: Response) => {
 };
 
 export const handleGetUserResults = async (req: Request, res: Response) => {
-  const { userId, start, count } = req.params;
-  const startInt = start ? parseInt(start, 10) : 0;
+  const { userId } = req.params;
+  const { start, count } = req.query;
 
-  const countInt = count ? parseInt(count, 10) : RESULT_PAGE_SIZE;
+  const startInt = +(start ?? 0);
+  const countInt = +(count ?? Number.MAX_SAFE_INTEGER);
+
   const results = await getUserResults(userId, startInt, countInt);
 
   res.status(StatusCodes.OK).json({ data: results, errors: [] });

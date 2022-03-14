@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Container, Table, useMantineTheme,
+  Group, Table, useMantineTheme,
 } from '@mantine/core';
 import {
-  LineChart, Line, CartesianGrid, YAxis, Label,
+  LineChart, Line, CartesianGrid, YAxis, Label, XAxis, Tooltip,
 } from 'recharts';
 
 import useUser from '@hooks/useUser';
@@ -30,6 +30,21 @@ const Profile: React.FC = () => {
   const [results, setResults] = useState<Result[]>([]);
   const navigate = useNavigate();
 
+  // TODO: Computationally heavy
+  // If this component starts to render slowly, this is likely it
+  //
+  // Computes a moving average over the last 10 races
+  const wpmResults = results.map(
+    (_, i) => ({
+      wpm: Math.floor(
+        results
+          .slice(Math.max(0, i - 10), i + 1)
+          .reduce((avg, { wpm }, j) => ((avg * j) + wpm) / (j + 1), 0),
+      ),
+      raceNumber: i + 1,
+    }),
+  );
+
   const user = useUser();
 
   useEffect(() => {
@@ -42,7 +57,7 @@ const Profile: React.FC = () => {
     <tr key={result.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`race/${result.raceId}`)}>
       <td>{(new Date(result.Race.createdAt)).toLocaleDateString()}</td>
       <td style={{
-        overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: '200px',
+        overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: '400px',
       }}
       >
         {result.Race.Passage.text}
@@ -50,22 +65,41 @@ const Profile: React.FC = () => {
       <td>{result.rank}</td>
       <td>{result.wpm}</td>
     </tr>
-
   ));
+
   return (
-    <Container>
+    <Group align="center" direction="column">
       {results && results.length !== 0 && (
-      <LineChart width={600} height={300} data={results}>
-        <Line type="monotone" dataKey="wpm" stroke="#8884d8" />
-        <CartesianGrid stroke="#ccc" />
-        <YAxis fontFamily={fontFamily}>
+      <LineChart
+        width={800}
+        height={400}
+        data={wpmResults}
+      >
+        <Line
+          type="basis"
+          stroke={useMantineTheme().colors.blue[6]}
+          dataKey="wpm"
+          dot={false}
+          strokeWidth={2}
+        />
+        <CartesianGrid stroke={useMantineTheme().colors.gray[4]} />
+        <YAxis fontFamily={fontFamily} fontSize={14} domain={['auto', 'auto']}>
           <Label angle={-90} position="insideLeft" fontFamily={fontFamily}>WPM</Label>
         </YAxis>
+        <Tooltip />
+        <XAxis
+          fontFamily={fontFamily}
+          minTickGap={50} // width / 10
+          fontVariant={fontFamily}
+          tickSize={4}
+          fontSize={14}
+          dataKey="raceNumber"
+        >
+          <Label position="bottom" fontFamily={fontFamily} offset={-7}>Race number</Label>
+        </XAxis>
       </LineChart>
       )}
-      <Table
-        highlightOnHover
-      >
+      <Table highlightOnHover>
         <thead>
           <tr>
             <th>Date</th>
@@ -78,7 +112,7 @@ const Profile: React.FC = () => {
           {rows}
         </tbody>
       </Table>
-    </Container>
+    </Group>
   );
 };
 
