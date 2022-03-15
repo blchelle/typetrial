@@ -1,5 +1,5 @@
 import { v4 } from 'uuid';
-import { WebSocket } from 'ws';
+import WebSocket from 'ws';
 
 interface Message {
   type: string;
@@ -21,11 +21,11 @@ class WsHandler {
 
   maxUsers: number;
 
-  constructor(maxUsers: number) {
-    this.public_rooms = new Map<string, string[]>();
-    this.private_rooms = new Map<string, string[]>();
-    this.user_info = new Map<string, WebSocket>();
-    this.race_info = new Map<string, boolean>();
+  constructor(maxUsers: number, public_rooms?: Map<string, string[]>, private_rooms?: Map<string, string[]>, user_info?: Map<string, WebSocket>, race_info?: Map<string, boolean>) {
+    this.public_rooms = public_rooms ? public_rooms : new Map<string, string[]>();
+    this.private_rooms = private_rooms ? private_rooms: new Map<string, string[]>();
+    this.user_info = user_info ? user_info : new Map<string, WebSocket>();
+    this.race_info = race_info ? race_info : new Map<string, boolean>();
     this.maxUsers = maxUsers;
   }
 
@@ -33,7 +33,13 @@ class WsHandler {
     const users = isPublic ? this.public_rooms.get(roomid) : this.private_rooms.get(roomid);
     if (users) {
       users.forEach((user) => {
-        this.user_info.get(user)?.send(JSON.stringify(message));
+        const ws = this.user_info.get(user);
+        try {
+          ws?.send(JSON.stringify(message));
+        }
+        catch (_){
+          this.disconnect_user_from_room(user, roomid);
+        }
       });
     }
   }
