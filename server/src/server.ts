@@ -11,7 +11,7 @@ import apiRoutes from './routes/apiRoutes';
 import { openLogFiles, writeLog } from './utils/log';
 import db from './prismaClient';
 import errorMiddleware from './middlewares/errorMiddleware';
-import create_websocket from './websockets/createWebsocketConnection';
+import createWebsocket from './websockets/createWebsocketConnection';
 
 // Has to be done in a 'require' because there are no type declarations
 const xss = require('xss-clean');
@@ -42,7 +42,7 @@ const initMiddleware = () => {
   app.use(xss());
 };
 
-create_websocket(app, new WsHandler(3));
+createWebsocket(app, new WsHandler(3));
 
 const main = async () => {
   initMiddleware();

@@ -2,6 +2,7 @@ module.exports = {
   env: {
     es2021: true,
     node: true,
+    jest: true
   },
   extends: [
     'airbnb-base',
@@ -29,6 +30,7 @@ module.exports = {
     'max-len': ['error', { code: 120, ignoreRegExpLiterals: true }],
     'import/extensions': 'off',
     'no-shadow': 'off',
+    "no-param-reassign": 'off',
   },
   overrides: [
     {
