@@ -6,22 +6,15 @@ import expressWs from 'express-ws';
 import path from 'path';
 import hpp from 'hpp';
 import xss from 'xss-clean';
-
-import WsHandler from './websocketHandler';
+import WsHandler from './websockets/websocketHandler';
 import environment, { NodeEnv } from './config/environment';
 import apiRoutes from './routes/apiRoutes';
 import { openLogFiles, writeLog } from './utils/log';
 import db from './prismaClient';
 import errorMiddleware from './middlewares/errorMiddleware';
-
-interface UserInfo {
-  username: string;
-  room: string;
-}
+import createWebsocket from './websockets/createWebsocketConnection';
 
 const { app } = expressWs(express());
-
-const wsHandler = new WsHandler(3);
 
 const initMiddleware = () => {
   app.use(bodyParser.json());
@@ -47,20 +40,7 @@ const initMiddleware = () => {
   app.use(xss());
 };
 
-app.ws('/api/connect/:user', (ws, req: Request) => {
-  writeLog({ event: 'user connected to websocket', user: req.params.user }, 'info');
-
-  const room = wsHandler.connect_user_to_room(req.params.user, ws);
-  const userInfo: UserInfo = { username: req.params.user, room };
-
-  ws.on('message', () => {
-  });
-
-  ws.on('close', () => {
-    writeLog({ event: 'websocket closed', user: userInfo.username }, 'info');
-    wsHandler.disconnect_user_from_room(userInfo.username, userInfo.room);
-  });
-});
+createWebsocket(app, new WsHandler(3));
 
 const main = async () => {
   initMiddleware();
