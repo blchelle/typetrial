@@ -8,23 +8,43 @@ interface Response {
     msg: string;
 }
 
+interface RoomConnection {
+  users: string[];
+  start: Date;
+}
+
 const NEW_USER = 'new_user';
 const USERS = 'users';
 const REMOVE_USER = 'remove_user';
+const MINCON = 60000;
 
 const WaitingRoom: React.FC = () => {
   const [userList, setUserList] = useState<string[]>([]);
   const [username, setUsername] = useState('');
   const [websocket, setWebsocket] = useState<WebSocket>();
   const [lastMessage, setLastMessage] = useState<Response>({ type: '', msg: '' });
+  const [countDown, setCountDown] = useState(0);
 
   const processMessage = (resp: Response) => {
     if (resp.type === NEW_USER) {
       const users = [...userList, resp.msg];
       setUserList(users);
+
     } else if (resp.type === USERS) {
-      const users = JSON.parse(resp.msg);
-      setUserList([username, ...users]);
+      const roomConnection: RoomConnection = JSON.parse(resp.msg);
+      setUserList([username, ...roomConnection.users]);
+
+      const start = new Date(roomConnection.start); 
+
+      let intervalId = setInterval (() => {
+        const now = new Date();
+        const rem = Math.round((start.getTime() - (new Date(now.getTime() + (now.getTimezoneOffset() * MINCON)).getTime()))/1000);
+        if (rem < 0) clearInterval(intervalId)
+        else {
+          setCountDown(rem);
+        }
+      }, 1000)
+
     } else if (resp.type === REMOVE_USER) {
       const users = JSON.parse(resp.msg);
       const index = users.indexOf(username);
@@ -66,9 +86,12 @@ const WaitingRoom: React.FC = () => {
   }, [lastMessage]);
 
   return (
-    <List>
-      {userList.map((user) => <ListItem key={user}>{user}</ListItem>)}
-    </List>
+    <div>
+      {countDown}
+      <List>
+        {userList.map((user) => <ListItem key={user}>{user}</ListItem>)}
+      </List>
+    </div>
   );
 };
 

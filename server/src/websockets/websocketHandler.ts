@@ -1,148 +1,111 @@
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
+import { RaceData, Message } from '../utils/types';
 
-interface Message {
-  type: string;
-  msg: string;
+interface RoomConnection {
+  users: string[];
+  start: Date;
 }
 
 const NEWUSER = 'new_user';
 const USERS = 'users';
 const REMUSER = 'remove_user';
+const MINCON = 60000;
+
 
 class WsHandler {
-  publicRooms: Map<string, string[]>;
-
-  privateRooms: Map<string, string[]>;
-
+  rooms: Map<string, RaceData>;
   userInfo: Map<string, WebSocket>;
-
-  raceInfo: Map<string, boolean>;
-
   maxUsers: number;
 
   constructor(
+    rooms: Map<string, RaceData>,
     maxUsers: number,
-    publicRooms?: Map<string, string[]>,
-    privateRooms?: Map<string, string[]>,
     userInfo?: Map<string, WebSocket>,
-    raceInfo?: Map<string, boolean>,
   ) {
-    this.publicRooms = publicRooms || new Map<string, string[]>();
-    this.privateRooms = privateRooms || new Map<string, string[]>();
+    this.rooms = rooms || new Map<string, RaceData>();
     this.userInfo = userInfo || new Map<string, WebSocket>();
-    this.raceInfo = raceInfo || new Map<string, boolean>();
     this.maxUsers = maxUsers;
   }
 
-  broadcast_message(roomid: string, message: Message, isPublic: boolean) {
-    const users = isPublic ? this.publicRooms.get(roomid) : this.privateRooms.get(roomid);
-    if (users) {
-      users.forEach((user) => {
-        const ws = this.userInfo.get(user);
-        try {
-          ws?.send(JSON.stringify(message));
-        } catch (_) {
-          this.disconnect_user_from_room(user, roomid);
-        }
-      });
-    }
+  broadcast_message(raceInfo: RaceData, message: Message) {
+    raceInfo.users.forEach((user) => {
+      const ws = this.userInfo.get(user);
+      try {
+        ws?.send(JSON.stringify(message));
+      } catch (_) {
+        this.disconnect_user_from_room(user, raceInfo);
+      }
+    });
   }
 
-  connect_user_to_room(user: string, ws: WebSocket, roomid: string = ''): string {
-    const isPublic = roomid === '';
-    const room = isPublic ? this.get_room() : this.get_room(roomid);
+  
+  connect_user_to_public_room(user: string, ws: WebSocket): RaceData | undefined  {
+    const roomId = this.find_match();
+    return this.connect_user_to_room(user, ws, roomId);
+  }
 
-    if (room === 'FULL') return 'FULL';
+  connect_user_to_room(user: string, ws: WebSocket, roomId: string): RaceData | undefined {
+    const raceInfo = this.rooms.get(roomId);
+
+    if (!raceInfo) {
+      return undefined;
+    }
 
     const newUserMessage: Message = { type: NEWUSER, msg: user };
-    const users = isPublic ? this.publicRooms.get(room) : this.privateRooms.get(room);
-
-    this.broadcast_message(room, newUserMessage, isPublic);
-    ws.send(JSON.stringify({ type: USERS, msg: JSON.stringify(users) }));
-
+    
+    const users = raceInfo.users;
     this.userInfo.set(user, ws);
+    this.broadcast_message(raceInfo, newUserMessage);
+    
+    const msg: RoomConnection = {users: users, start: raceInfo.start}
+    ws.send(JSON.stringify({ type: USERS, msg: JSON.stringify(msg)}));
 
-    if (isPublic) {
-      this.publicRooms.get(room)?.push(user);
-    } else {
-      this.privateRooms.get(room)?.push(user);
-    }
-    return room;
+    raceInfo.users.push(user);
+      
+    return raceInfo;
   }
 
-  disconnect_user_from_room(user: string, roomid: string) {
+  disconnect_user_from_room(user: string, raceInfo: RaceData) {
     this.userInfo.delete(user);
+    let index = raceInfo.users.indexOf(user);
+    if (index > -1) {
+      raceInfo.users.splice(index, 1);
 
-    let index = this.publicRooms.get(roomid)?.indexOf(user);
+      if (raceInfo.users.length === 0) {
+        this.rooms.delete(raceInfo.roomId);
 
-    if (index !== undefined && index > -1) {
-      this.publicRooms.get(roomid)?.splice(index, 1);
-
-      if (this.publicRooms.get(roomid)?.length === 0) {
-        this.delete_room(roomid);
       } else {
-        this.broadcast_message(roomid, { type: REMUSER, msg: JSON.stringify(this.publicRooms.get(roomid)) }, true);
+        this.broadcast_message(raceInfo, { type: REMUSER, msg: JSON.stringify(raceInfo.users)});
       }
-
       return;
     }
-
-    index = this.privateRooms.get(roomid)?.indexOf(user);
-
-    if (index !== undefined && index > -1) {
-      this.privateRooms.get(roomid)?.splice(index, 1);
-      if (this.privateRooms.get(roomid)?.length === 0) {
-        this.delete_room(roomid);
-      } else {
-        this.broadcast_message(roomid, { type: REMUSER, msg: JSON.stringify(this.privateRooms.get(roomid)) }, false);
-      }
-    }
   }
 
-  get_room(room?: string): string {
-    if (!room) {
-      let roomId = '';
-      this.publicRooms.forEach((users, r) => {
-        if (!this.raceInfo.get(r) && users.length < this.maxUsers) {
-          roomId = r;
-        }
-      });
-
-      return roomId === '' ? this.create_room(true) : roomId;
-    }
-
-    const users = this.privateRooms.get(room);
-
-    if (users) {
-      return users.length >= this.maxUsers ? 'FULL' : room;
-    }
-
-    return 'FULL';
+  find_match (): string {
+    let roomId = '';
+    Object.entries(this.rooms).forEach(([id, raceInfo]) => {
+      if (!raceInfo.hasStarted && raceInfo.users.length < this.maxUsers && raceInfo.isPublic) {
+        roomId = id
+      }
+    })
+    
+    return roomId === '' ? this.create_room(true) : roomId;
   }
 
   create_room(isPublic: boolean) {
     let roomId = v4();
 
-    while (this.publicRooms.has(roomId) || this.privateRooms.has(roomId)) {
+    while (this.rooms.has(roomId)) {
       roomId = v4();
     }
 
-    this.raceInfo.set(roomId, false);
-
-    if (isPublic) {
-      this.publicRooms.set(roomId, []);
-    } else {
-      this.privateRooms.set(roomId, []);
-    }
+    const now = new Date();
+    const start = new Date (now.getTime() + (now.getTimezoneOffset()*MINCON)+10000);
+    const raceInfo: RaceData = {roomId, hasStarted: false, isPublic, start, passage: "TODO", users: []};
+    this.rooms.set(roomId, raceInfo);
 
     return roomId;
-  }
-
-  delete_room(roomid: string) {
-    this.raceInfo.delete(roomid);
-    this.publicRooms.delete(roomid);
-    this.privateRooms.delete(roomid);
   }
 }
 
