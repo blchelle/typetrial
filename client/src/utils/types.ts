@@ -40,6 +40,11 @@ export interface ConnectPrivateMessage extends InMessage {
     roomId: string;
 }
 
+export interface CreatePrivateMessage extends InMessage {
+    type: 'create_private';
+    public: boolean;
+}
+
 export interface StartMessage extends InMessage {
     type: 'start';
 }

@@ -1,10 +1,10 @@
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
-import { RaceData, Message } from '../utils/types';
+import { RaceData, Message, RaceDataMessage } from '../utils/types';
 
-const NEWUSER = 'new_user';
-const USERS = 'users';
-const REMUSER = 'remove_user';
+// const NEWUSER = 'new_user';
+// const USERS = 'users';
+// const REMUSER = 'remove_user';
 const MINCON = 60000;
 
 class WsHandler {
@@ -35,6 +35,11 @@ class WsHandler {
     });
   }
 
+  broadcast_race_info(raceInfo: RaceData) {
+    const message: RaceDataMessage = { type: 'raceData', raceInfo };
+    this.broadcast_message(raceInfo, message);
+  }
+
   connect_user_to_public_room(user: string, ws: WebSocket): RaceData | undefined {
     const roomId = this.find_match();
     return this.connect_user_to_room(user, ws, roomId);
@@ -47,14 +52,10 @@ class WsHandler {
       return undefined;
     }
 
-    const newUserMessage: Message = { type: NEWUSER, msg: user };
-
     this.userInfo.set(user, ws);
-    this.broadcast_message(raceInfo, newUserMessage);
-
-    ws.send(JSON.stringify({ type: USERS, msg: JSON.stringify(raceInfo) }));
 
     raceInfo.users.push(user);
+    this.broadcast_race_info(raceInfo);
 
     return raceInfo;
   }
@@ -68,7 +69,7 @@ class WsHandler {
       if (raceInfo.users.length === 0) {
         this.rooms.delete(raceInfo.roomId);
       } else {
-        this.broadcast_message(raceInfo, { type: REMUSER, msg: JSON.stringify(raceInfo.users) });
+        this.broadcast_race_info(raceInfo);
       }
     }
   }
@@ -99,6 +100,12 @@ class WsHandler {
     this.rooms.set(roomId, raceInfo);
 
     return roomId;
+  }
+
+  start_race(raceInfo: RaceData) {
+    // TODO check if user is leader
+    raceInfo.hasStarted = true;
+    this.broadcast_race_info(raceInfo);
   }
 }
 
