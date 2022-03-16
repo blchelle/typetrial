@@ -41,11 +41,11 @@ const Navigation: React.FC = () => {
                 <Group spacing={2}>
                   <Badge size="xs">
                     WPM:
-                    {user.Results.wpm}
+                    { user.Results?.wpm ?? 0 }
                   </Badge>
                   <Badge size="xs">
                     Races:
-                    {user.Results.count}
+                    { user.Results?.count ?? 0 }
                   </Badge>
                 </Group>
               </Group>
