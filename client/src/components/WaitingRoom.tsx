@@ -29,22 +29,21 @@ const WaitingRoom: React.FC = () => {
     if (resp.type === NEW_USER) {
       const users = [...userList, resp.msg];
       setUserList(users);
-
     } else if (resp.type === USERS) {
       const roomConnection: RoomConnection = JSON.parse(resp.msg);
       setUserList([username, ...roomConnection.users]);
 
-      const start = new Date(roomConnection.start); 
+      const start = new Date(roomConnection.start);
 
-      let intervalId = setInterval (() => {
+      const intervalId = setInterval(() => {
         const now = new Date();
-        const rem = Math.round((start.getTime() - (new Date(now.getTime() + (now.getTimezoneOffset() * MINCON)).getTime()))/1000);
-        if (rem < 0) clearInterval(intervalId)
+        const rem = Math.round((start.getTime() - (new Date(now.getTime()
+        + (now.getTimezoneOffset() * MINCON)).getTime())) / 1000);
+        if (rem < 0) clearInterval(intervalId);
         else {
           setCountDown(rem);
         }
-      }, 1000)
-
+      }, 1000);
     } else if (resp.type === REMOVE_USER) {
       const users = JSON.parse(resp.msg);
       const index = users.indexOf(username);
