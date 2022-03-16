@@ -6,8 +6,9 @@ import { Link } from 'react-router-dom';
 
 import { useModals } from '@mantine/modals';
 import { AuthModals, AuthType } from '@components/AuthForm';
-import { IoSettings, IoStatsChart } from 'react-icons/io5';
+import { IoHome, IoSettings, IoStatsChart } from 'react-icons/io5';
 import axios from 'axios';
+import useUser from '@hooks/useUser';
 
 const Navigation: React.FC = () => {
   const modals = useModals();
@@ -26,8 +27,7 @@ const Navigation: React.FC = () => {
     }
   };
 
-  const lsUser = localStorage.getItem('user');
-  const user = lsUser ? JSON.parse(lsUser) : null;
+  const user = useUser();
 
   return (
     <Header height={50}>
@@ -49,6 +49,7 @@ const Navigation: React.FC = () => {
                   </Badge>
                 </Group>
               </Group>
+              <Link to="/"><Button size="md" color="blue" variant="light"><IoHome /></Button></Link>
               <Link to="/profile"><Button size="md" color="blue" variant="light"><IoStatsChart /></Button></Link>
               <Button size="md" color="gray" variant="light"><IoSettings /></Button>
             </Group>

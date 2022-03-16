@@ -18,6 +18,7 @@ module.exports = {
   globals: {
     jest: true,
     beforeEach: true,
+    beforeAll: true,
     describe: true,
     it: true,
   },

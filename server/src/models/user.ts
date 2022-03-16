@@ -179,11 +179,11 @@ export const validateResetPasswordInput = async (input: any) => {
 // Role is removed because 99.9% our users will be USER, the ADMINS know who they are
 export const sanitizeUserOutput = (user: User & { Results: { wpm: number, count: number} }) => {
   const {
-    id, email, username, createdAt, updatedAt, Results,
+    id, email, username, Results,
   } = user;
 
   return {
-    id, email, username, createdAt, updatedAt, Results,
+    id, email, username, Results,
   };
 };
 

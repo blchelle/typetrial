@@ -1,9 +1,14 @@
-import {
-  Container, Table,
-} from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../config/axios';
+import {
+  Container, Table, useMantineTheme,
+} from '@mantine/core';
+import {
+  LineChart, Line, CartesianGrid, YAxis, Label,
+} from 'recharts';
+
+import useUser from '@hooks/useUser';
+import axios from '@config/axios';
 
 interface Result {
   id: number,
@@ -16,34 +21,44 @@ interface Result {
 }
 
 const Profile: React.FC = () => {
-  const [elements, setElements] = useState<Result[]>([]);
+  const { fontFamily } = useMantineTheme();
+
+  const [results, setResults] = useState<Result[]>([]);
   const navigate = useNavigate();
 
-  const lsUser = localStorage.getItem('user');
-  const user = lsUser ? JSON.parse(lsUser) : null;
+  const user = useUser();
 
   useEffect(() => {
     axios.get(`/results/user/${user.id}`).then((res) => {
-      setElements(res.data.results);
+      setResults(res.data.data);
     });
   }, []);
 
-  const rows = elements.map((element) => (
-    <tr key={element.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`race/${element.raceId}`)}>
-      <td>{(new Date(element.createdAt)).toLocaleDateString()}</td>
+  const rows = results.map((result) => (
+    <tr key={result.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`race/${result.raceId}`)}>
+      <td>{(new Date(result.createdAt)).toLocaleDateString()}</td>
       <td style={{
         overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: '200px',
       }}
       >
-        {element.passage}
+        {result.passage}
       </td>
-      <td>{element.rank}</td>
-      <td>{element.wpm}</td>
+      <td>{result.rank}</td>
+      <td>{result.wpm}</td>
     </tr>
 
   ));
   return (
     <Container>
+      {results && results.length !== 0 && (
+      <LineChart width={600} height={300} data={results}>
+        <Line type="monotone" dataKey="wpm" stroke="#8884d8" />
+        <CartesianGrid stroke="#ccc" />
+        <YAxis fontFamily={fontFamily}>
+          <Label angle={-90} position="insideLeft" fontFamily={fontFamily}>WPM</Label>
+        </YAxis>
+      </LineChart>
+      )}
       <Table
         highlightOnHover
       >

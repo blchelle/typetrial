@@ -27,7 +27,7 @@ export const handleSignupUser = async (req: Request, res: Response) => {
   const newUser = { ...(await signupUser(inputUser)), Results: { wpm: 0, count: 0 } };
 
   createJWT(newUser.id, res);
-  res.status(StatusCodes.CREATED).json({ user: sanitizeUserOutput(newUser), errors: [] });
+  res.status(StatusCodes.CREATED).json({ data: sanitizeUserOutput(newUser), error: null });
 };
 
 export const handleLoginUser = async (req: Request, res: Response) => {
@@ -43,9 +43,7 @@ export const handleLoginUser = async (req: Request, res: Response) => {
   }
 
   createJWT(user.id, res);
-  res.status(StatusCodes.OK).json(
-    { user: sanitizeUserOutput(user), errors: [] },
-  );
+  res.status(StatusCodes.OK).json({ data: sanitizeUserOutput(user), error: null });
 };
 
 export const handleResetPasswordEmail = async (req: Request, res: Response) => {

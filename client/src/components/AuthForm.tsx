@@ -63,9 +63,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
 
     try {
       const res = await axios.post(`/users/${type}`, { ...values });
-      const { user } = res.data;
+      const { data } = res.data;
 
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(data));
       notifications.showNotification({
         title: type === 'login' ? 'Welcome back!' : "You're In!",
         color: 'green',

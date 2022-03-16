@@ -1,7 +1,6 @@
 import WS from 'jest-websocket-mock';
 import { WebSocket as MockSocket } from 'mock-socket';
 import { WebSocket } from 'ws';
-import { expect, afterEach } from '@jest/globals';
 import WsHandler from '../../websockets/websocketHandler';
 import { createHandler } from '../../websockets/createWebsocketConnection';
 

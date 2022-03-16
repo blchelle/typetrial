@@ -41,9 +41,12 @@ export const writeLog = (log: Log, logType: LogType) => {
   const logInfo = Object.entries(log).map(([key, value]) => `${key}: ${value}`).join(', ');
   const logString = `${timestamp} - ${logInfo}`;
 
-  if (process.env.NODE_ENV as NodeEnv === 'production') {
+  const envName = process.env.NODE_ENV as NodeEnv;
+  if (envName === 'production') {
     writeToFile(logString, logType);
-  } else {
+  } else if (envName === 'development') {
     writeToConsole(logString, logType);
   }
+
+  // Purposely let logs fall through in test mode
 };

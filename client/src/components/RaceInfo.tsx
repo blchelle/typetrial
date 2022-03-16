@@ -3,7 +3,8 @@ import {
 } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from '../config/axios';
+import useUser from '@hooks/useUser';
+import axios from '@config/axios';
 
   interface Result {
     wpm: number,
@@ -23,8 +24,7 @@ import axios from '../config/axios';
 const RaceInfo: React.FC = () => {
   const [race, setRace] = useState<Race>();
 
-  const lsUser = localStorage.getItem('user');
-  const user = lsUser ? JSON.parse(lsUser) : null;
+  const user = useUser();
   const { raceId } = useParams();
 
   const { colors } = useMantineTheme();
@@ -32,7 +32,7 @@ const RaceInfo: React.FC = () => {
 
   useEffect(() => {
     axios.get(`/races/get/${raceId}`).then((res) => {
-      setRace(res.data.race);
+      setRace(res.data.data);
     });
   }, []);
 
