@@ -19,6 +19,10 @@ module.exports = {
   globals: {
     NodeJS: true,
     JSX: true,
+    jest: true,
+    beforeEach: true,
+    describe: true,
+    it: true,
   },
   rules: {
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
@@ -32,6 +36,17 @@ module.exports = {
     'jsx-a11y/label-has-associated-control': 'off',
     'no-use-before-define': 'off',
     'no-unused-vars': 'off',
+    'import/prefer-default-export': 'off',
   },
   ignorePatterns: ['node_modules/', 'dist/'],
+  overrides: [
+    {
+      files: ['*.spec.tsx'],
+      rules: {
+        'no-unused-expressions': 'off',
+        'max-len': 'off',
+        'react/react-in-jsx-scope': 'off',
+      },
+    },
+  ],
 };
