@@ -2,7 +2,7 @@ import { v4 } from 'uuid';
 import WebSocket from 'ws';
 import { RaceData, Message, RaceDataMessage } from '../utils/types';
 
-const playerColors = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
+export const PLAYER_COLORS = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
 
 // const NEWUSER = 'new_user';
 // const USERS = 'users';
@@ -56,7 +56,7 @@ class WsHandler {
 
     this.userInfo.set(user, ws);
 
-    raceInfo.userInfo[user] = { color: playerColors[raceInfo.users.length], charsTyped: 0 };
+    raceInfo.userInfo[user] = { color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0 };
     raceInfo.users.push(user);
 
     this.broadcast_race_info(raceInfo);
@@ -69,6 +69,7 @@ class WsHandler {
     const index = raceInfo.users.indexOf(user);
     if (index > -1) {
       raceInfo.users.splice(index, 1);
+      delete raceInfo.userInfo[user];
 
       if (raceInfo.users.length === 0) {
         this.rooms.delete(raceInfo.roomId);
