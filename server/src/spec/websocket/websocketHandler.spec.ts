@@ -22,6 +22,8 @@ describe('WsHandler', () => {
   let RACEINFO1: RaceData;
   let RACEINFOFULL1: RaceData;
 
+  const startDate = new Date();
+
   beforeEach(async () => {
     mockServer = new WS(fakeURL);
     client1 = new WebSocket(fakeURL);
@@ -36,10 +38,10 @@ describe('WsHandler', () => {
     USER2 = 'user2';
     ROOMID = '1';
     RACEINFO1 = {
-      roomId: ROOMID, hasStarted: false, isPublic: true, start: new Date(), passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 } },
+      roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 } },
     };
     RACEINFOFULL1 = {
-      roomId: ROOMID, hasStarted: false, isPublic: true, start: new Date(), passage: 'TODO', users: [USER1, USER2], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 }, [USER2]: { color: PLAYER_COLORS[1], charsTyped: 0 } },
+      roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1, USER2], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 }, [USER2]: { color: PLAYER_COLORS[1], charsTyped: 0 } },
     };
   });
 
@@ -133,7 +135,7 @@ describe('WsHandler', () => {
     wsHandler.type_char(1, USER1, RACEINFO1);
 
     const updatedRaceInfo = {
-      roomId: ROOMID, hasStarted: false, isPublic: true, start: new Date(), passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 1 } },
+      roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 1 } },
     };
     const message: RaceDataMessage = { type: 'raceData', raceInfo: updatedRaceInfo };
 
