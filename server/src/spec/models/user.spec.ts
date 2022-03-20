@@ -1,14 +1,21 @@
 import { Role } from '@prisma/client';
 import { PrismaClientValidationError } from '@prisma/client/runtime';
 import { expect } from 'chai';
+
 import { StatusCodes } from 'http-status-codes';
 import APIError from '../../errors/apiError';
+import FieldError from '../../errors/fieldError';
+import { ForbiddenError } from '../../errors/forbiddenError';
 
 import {
+  createResetPasswordToken,
   getUserById,
+  resetPassword,
   sanitizeUserOutput,
   signupUser,
   validateLoginInput,
+  validateResetPasswordInput,
+  validateSendResetPasswordInput,
   validateSignupInput,
 } from '../../models/user';
 
@@ -28,7 +35,13 @@ describe('user', () => {
     Results: [],
   };
 
-  describe('validateSignupInput', () => {
+  const mockToken = {
+    expiresAt: new Date(),
+    userId: 1,
+    id: '01234567-aaaa-bbbb-cccc-0123456789ab',
+  };
+
+  describe(validateSignupInput, () => {
     const validInput = { email: 'test@test.com', username: 'testuser', password: 'abc123ABC' };
 
     it('returns no errors for valid input', async () => {
@@ -153,7 +166,7 @@ describe('user', () => {
     });
   });
 
-  describe('validateLoginInput', () => {
+  describe(validateLoginInput, () => {
     const validInput = { identifier: 'testuser', password: 'abc123ABC' };
 
     it('returns the user by email identifier', async () => {
@@ -210,7 +223,119 @@ describe('user', () => {
     });
   });
 
-  describe('sanitizeUserOutput', () => {
+  describe(validateSendResetPasswordInput, () => {
+    const validInput = { identifier: 'testuser' };
+
+    it('returns the user by email identifier', async () => {
+      dbMock.user.findUnique.mockResolvedValue({ ...mockUser });
+      const user = await validateSendResetPasswordInput({ ...validInput });
+
+      expect(user).to.deep.equal({ ...mockUser, Results: { wpm: 0, count: 0 } });
+    });
+
+    it('returns an error for no identifier', async () => {
+      await expectThrowsAsync(
+        () => validateSendResetPasswordInput({ ...validInput, identifier: '' }),
+        new APIError(
+          'invalid input',
+          StatusCodes.UNPROCESSABLE_ENTITY,
+          [{ field: 'identifier', input: '', message: 'must be present' }],
+        ),
+      );
+    });
+
+    it('returns an error for non-string identifier', async () => {
+      await expectThrowsAsync(
+        () => validateSendResetPasswordInput({ ...validInput, identifier: true }),
+        new APIError(
+          'invalid input',
+          StatusCodes.UNPROCESSABLE_ENTITY,
+          [{ field: 'identifier', input: true, message: 'must be a string' }],
+        ),
+      );
+    });
+
+    it('returns an error for non-email, non-username identifier', async () => {
+      await expectThrowsAsync(
+        () => validateSendResetPasswordInput({ ...validInput, identifier: 'has spaces' }),
+        new APIError(
+          'invalid input',
+          StatusCodes.UNPROCESSABLE_ENTITY,
+          [{ field: 'identifier', input: 'has spaces', message: 'must be a valid identifier' }],
+        ),
+      );
+    });
+
+    it('returns an error for non existent user', async () => {
+      dbMock.user.findUnique.mockResolvedValue(null);
+
+      await expectThrowsAsync(
+        () => validateSendResetPasswordInput({ ...validInput }),
+        new APIError(
+          'invalid input',
+          StatusCodes.NOT_FOUND,
+          [{ field: 'username', input: validInput.identifier, message: 'is not associated with an account' }],
+        ),
+      );
+    });
+  });
+
+  describe(validateResetPasswordInput, () => {
+    const validInput = { password: 'Test1234', token: mockToken.id };
+
+    it('throws when request body is not object', async () => {
+      await expectThrowsAsync(
+        () => validateResetPasswordInput(5),
+        new APIError('missing request body', StatusCodes.UNPROCESSABLE_ENTITY),
+      );
+    });
+
+    it('throws early when token is malformed', async () => {
+      await expectThrowsAsync(
+        () => validateResetPasswordInput({ ...validInput, token: 'bad-token' }),
+        new ForbiddenError(),
+      );
+
+      expect(dbMock.passwordResetToken.findFirst.mock.calls).to.have.lengthOf(0);
+    });
+
+    it('throws when token is not found', async () => {
+      dbMock.passwordResetToken.findFirst.mockResolvedValue(null);
+
+      await expectThrowsAsync(
+        () => validateResetPasswordInput(validInput),
+        new ForbiddenError(),
+      );
+
+      expect(dbMock.passwordResetToken.findFirst.mock.calls).to.have.lengthOf(1);
+    });
+
+    it('throws when password is malformed', async () => {
+      dbMock.passwordResetToken.findFirst.mockResolvedValue(mockToken);
+
+      await expectThrowsAsync(
+        () => validateResetPasswordInput({ ...validInput, password: 'weak' }),
+        new APIError(
+          'invalid password',
+          StatusCodes.UNPROCESSABLE_ENTITY,
+          [new FieldError('password', 'weak', 'must be a valid password')],
+        ),
+      );
+
+      expect(dbMock.passwordResetToken.findFirst.mock.calls).to.have.lengthOf(1);
+    });
+
+    it('returns token when successful', async () => {
+      dbMock.passwordResetToken.findFirst.mockResolvedValue(mockToken);
+
+      const token = await validateResetPasswordInput(validInput);
+
+      expect(token).to.deep.equal(mockToken);
+      expect(dbMock.passwordResetToken.findFirst.mock.calls).to.have.lengthOf(1);
+    });
+  });
+
+  describe(sanitizeUserOutput, () => {
     it('removes password and role from user', () => {
       const sanitized = sanitizeUserOutput({ ...mockUser, Results: { wpm: 0, count: 0 } });
 
@@ -225,7 +350,7 @@ describe('user', () => {
     });
   });
 
-  describe('signupUser', () => {
+  describe(signupUser, () => {
     const input = {
       username: 'testuser',
       email: 'test@test.com',
@@ -249,7 +374,7 @@ describe('user', () => {
     });
   });
 
-  describe('getUserById', () => {
+  describe(getUserById, () => {
     const id = 1;
 
     it('returns the user on success', async () => {
@@ -266,6 +391,51 @@ describe('user', () => {
         () => getUserById(id),
         new PrismaClientValidationError('test error'),
       );
+    });
+  });
+
+  describe(createResetPasswordToken, () => {
+    it('reuses an existing token if one exists', async () => {
+      dbMock.passwordResetToken.findFirst.mockResolvedValue(mockToken);
+
+      const token = await createResetPasswordToken(mockUser);
+
+      expect(token).to.deep.equal(mockToken);
+      expect(dbMock.passwordResetToken.findFirst.mock.calls).to.have.lengthOf(1);
+      expect(dbMock.passwordResetToken.create.mock.calls).to.have.lengthOf(0);
+    });
+
+    it('creates a new token if none exist', async () => {
+      dbMock.passwordResetToken.findFirst.mockResolvedValue(null);
+      dbMock.passwordResetToken.create.mockResolvedValue(mockToken);
+
+      const token = await createResetPasswordToken(mockUser);
+
+      expect(token).to.deep.equal(mockToken);
+      expect(dbMock.passwordResetToken.findFirst.mock.calls).to.have.lengthOf(1);
+      expect(dbMock.passwordResetToken.create.mock.calls).to.have.lengthOf(1);
+    });
+  });
+
+  describe(resetPassword, () => {
+    it('throws on db error', async () => {
+      dbMock.user.update.mockRejectedValue(new PrismaClientValidationError());
+
+      await expectThrowsAsync(
+        () => resetPassword(mockToken, mockUser.password),
+        new PrismaClientValidationError(),
+      );
+
+      expect(dbMock.user.update.mock.calls).to.have.lengthOf(1);
+    });
+
+    it('returns nothing if successful', async () => {
+      dbMock.user.update.mockResolvedValue(mockUser);
+
+      const res = await resetPassword(mockToken, mockUser.password);
+
+      expect(res).to.not.exist;
+      expect(dbMock.user.update.mock.calls).to.have.lengthOf(1);
     });
   });
 });
