@@ -1,10 +1,16 @@
+export interface User {
+    color: string;
+    charsTyped: number;
+}
+
 export interface RaceData {
     roomId: string,
     hasStarted: boolean,
     isPublic: boolean,
     start: Date,
-    passage: string
-    users: string []
+    passage: string,
+    users: string [],
+    userInfo: {[key: string]: User; }
 }
 
 export interface Message {
@@ -47,4 +53,9 @@ export interface CreatePrivateMessage extends InMessage {
 
 export interface StartMessage extends InMessage {
     type: 'start';
+}
+
+export interface TypeMessage extends InMessage {
+    type: 'type';
+    charsTyped: number;
 }

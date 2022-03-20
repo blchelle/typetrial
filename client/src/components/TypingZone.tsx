@@ -4,21 +4,26 @@ import {
   Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
 import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
+import { RaceData, TypeMessage, User } from '@utils/types';
+import useUser from '@hooks/useUser';
 
 const passage = "We can now get these kids to buy just about anything. We can have them chasing a new trend every week. And that is good for the economy. And what's good for the economy is good for the country.";
-const blurb = passage.split(
-  ' ',
-);
+const blurb = passage.split(' ');
+
+interface TypingZoneProps {
+  websocket: any,
+  raceInfo: RaceData,
+}
 
 let timer: NodeJS.Timer;
-const TypingZone: React.FC = () => {
+const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const theme = useMantineTheme();
 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWordInput, setCurrentWordInput] = useState('');
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
-  const [charactersTyped, setCharactersTyped] = useState<number>(0);
+  const [currentCharIndex, setCurrentCharIndex] = useState<number>(0);
   const [error, setError] = useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,7 +33,9 @@ const TypingZone: React.FC = () => {
       setStartTime(new Date().getTime());
     }
 
-    setCharactersTyped(charactersTyped);
+    const typedChars = [...blurb.slice(0, currentWordIndex), '']
+      .join(' ').length + lastMatchingCharIndex(event.target.value, `${blurb[currentWordIndex]} `);
+    setCurrentCharIndex(typedChars);
 
     if (
       value === `${blurb[currentWordIndex]} `
@@ -38,14 +45,31 @@ const TypingZone: React.FC = () => {
       setCurrentWordIndex(currentWordIndex + 1);
       setCurrentWordInput('');
       setEndTime(new Date().getTime());
-      // ws.send(JSON.stringify({ currentWordIndex: currentWordIndex + 1 }));
+      sendTypingUpdate(typedChars);
     } else if (value !== blurb[currentWordIndex].substring(0, value.length)) {
       setError(true);
       setCurrentWordInput(event.target.value);
     } else {
       setError(false);
       setCurrentWordInput(event.target.value);
+      sendTypingUpdate(typedChars);
     }
+  };
+
+  const lastMatchingCharIndex = (s1:string, s2:string):number => {
+    let i;
+    for (i = 0; i < Math.min(s1.length, s2.length); i += 1) {
+      if (s1[i] !== s2[i]) { break; }
+    }
+    return i;
+  };
+
+  const sendTypingUpdate = (charsTyped: number) => {
+    const typeMessage: TypeMessage = {
+      type: 'type',
+      charsTyped,
+    };
+    websocket?.send(JSON.stringify(typeMessage));
   };
 
   const convertTimeToWPM = (): number => {
@@ -59,33 +83,33 @@ const TypingZone: React.FC = () => {
     return Math.round(wpm);
   };
 
-  const lastMatchingCharIndex = (word: string): number => {
-    let i = 0;
-    while (i < blurb[currentWordIndex].length && word[i] === blurb[currentWordIndex][i]) {
-      i += 1;
-    }
-
-    return i;
-  };
-
-  const renderCursor = (wordIndex: number, letterIndex: number): JSX.Element | null => {
-    if (currentWordIndex === wordIndex && letterIndex === lastMatchingCharIndex(currentWordInput)) {
-      return (
+  const renderCursor = (charIndex: number, renderRaceInfo: RaceData): JSX.Element | null => {
+    const { username } = useUser();
+    const localUser = {
+      ...renderRaceInfo.userInfo[username],
+      charsTyped: currentCharIndex,
+    };
+    const lUserInfo: {[key: string]: User; } = {
+      ...renderRaceInfo.userInfo,
+      [username]: localUser,
+    };
+    const cursor = Object.values(lUserInfo)
+      .filter((user) => user.charsTyped === charIndex)
+      .map((user) => (
         <span
           style={{
             width: '2px',
             top: 0,
-            backgroundColor: theme.colors.gray[7],
+            backgroundColor: user.color,
             left: 0,
             display: 'inline-block',
             height: '1rem',
             position: 'absolute',
           }}
         />
-      );
-    }
+      ))[0] || null;
 
-    return null;
+    return cursor;
   };
 
   clearTimeout(timer);
@@ -106,19 +130,18 @@ const TypingZone: React.FC = () => {
         </div>
         <div className="rounded-lg bg-gray-200 p-8">
           <div className="mb-5">
-            {blurb.map((word, index) => [...word, ' '].map((letter, letterIndex) => {
-              const charColor = index < currentWordIndex || (
-                index === currentWordIndex && letterIndex < lastMatchingCharIndex(currentWordInput)
-              ) ? theme.colors.green[8] : '';
+
+            {blurb.join(' ').split('').map((letter, charindex) => {
+              const charColor = (charindex < currentCharIndex) ? theme.colors.green[8] : '';
 
               return (
                 <Text style={{ display: 'inline', position: 'relative', color: charColor }}>
-                  {renderCursor(index, letterIndex)}
+                  {renderCursor(charindex, raceInfo)}
                   {letter}
                 </Text>
 
               );
-            }))}
+            })}
           </div>
           <TextInput
             styles={{ defaultVariant: { backgroundColor: error ? theme.colors.red[5] : 'auto' } }}

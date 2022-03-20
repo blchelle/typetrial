@@ -40,7 +40,7 @@ const initMiddleware = () => {
   app.use(xss());
 };
 
-createWebsocket(app, new WsHandler(3));
+createWebsocket(app, new WsHandler(5));
 
 const main = async () => {
   initMiddleware();

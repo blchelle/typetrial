@@ -3,7 +3,9 @@ import WebSocket from 'ws';
 import { Request } from 'express';
 import { writeLog } from '../utils/log';
 import WsHandler from '../websockets/websocketHandler';
-import { RaceData, Message, ConnectPrivateMessage } from '../utils/types';
+import {
+  RaceData, ConnectPrivateMessage, InMessage, TypeMessage,
+} from '../utils/types';
 
 interface UserInfo {
     user: string;
@@ -14,7 +16,7 @@ export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler)
   let userInfo: UserInfo;
   ws.on('message', (event) => {
     // TODO idk error handle and make sure message meets these requirements
-    const message: Message = JSON.parse(event.toString());
+    const message: InMessage = JSON.parse(event.toString());
     if (message.type === 'connect_public') {
       const raceInfo = wsHandler.connect_user_to_public_room(user, ws);
       if (raceInfo) {
@@ -41,7 +43,12 @@ export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler)
         // TODO handle something going terribly wrong
       }
     } else if (message.type === 'start') {
-      wsHandler.start_race(userInfo.raceInfo);
+      wsHandler.start_race(user, userInfo.raceInfo);
+    } else if (message.type === 'type') {
+      const typeMessage = <TypeMessage> message;
+      const { charsTyped } = typeMessage;
+
+      wsHandler.type_char(charsTyped, user, userInfo.raceInfo);
     }
   });
 

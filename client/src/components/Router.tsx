@@ -8,7 +8,6 @@ import Home from '@components/Home';
 import Profile from '@components/Profile';
 import ResetPassword from '@components/ResetPassword';
 import RaceInfo from './RaceInfo';
-import TypingZone from './TypingZone';
 
 const Router: React.FC = () => (
   <BrowserRouter>
@@ -20,7 +19,6 @@ const Router: React.FC = () => (
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/race/:raceId" element={<RaceInfo />} />
-        <Route path="/racetest" element={<TypingZone />} />
       </Routes>
     </Group>
   </BrowserRouter>
