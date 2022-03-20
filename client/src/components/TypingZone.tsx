@@ -3,12 +3,12 @@ import {
   Container,
   Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
+import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
 
-const blurb = "We can now get these kids to buy just about anything. We can have them chasing a new trend every week. And that is good for the economy. And what's good for the economy is good for the country.".split(
+const passage = "We can now get these kids to buy just about anything. We can have them chasing a new trend every week. And that is good for the economy. And what's good for the economy is good for the country.";
+const blurb = passage.split(
   ' ',
 );
-
-const MILLISECONDS_PER_MINUTE = 60000;
 
 let timer: NodeJS.Timer;
 const TypingZone: React.FC = () => {
@@ -38,6 +38,7 @@ const TypingZone: React.FC = () => {
       setCurrentWordIndex(currentWordIndex + 1);
       setCurrentWordInput('');
       setEndTime(new Date().getTime());
+      // ws.send(JSON.stringify({ currentWordIndex: currentWordIndex + 1 }));
     } else if (value !== blurb[currentWordIndex].substring(0, value.length)) {
       setError(true);
       setCurrentWordInput(event.target.value);
