@@ -165,7 +165,6 @@ export const validateResetPasswordInput = async (input: any) => {
   if (typeof input !== 'object') throw new APIError('missing request body', StatusCodes.UNPROCESSABLE_ENTITY);
 
   const { password, token } = input;
-
   const resetToken = await validateResetToken(token);
 
   const { errors: passwordErrors, status: passwordStatus } = validatePassword(password);
