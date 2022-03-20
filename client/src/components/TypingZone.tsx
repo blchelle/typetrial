@@ -4,7 +4,8 @@ import {
   Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
 import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
-import { RaceData, TypeMessage } from '@utils/types';
+import { RaceData, TypeMessage, User } from '@utils/types';
+import useUser from '@hooks/useUser';
 
 const passage = "We can now get these kids to buy just about anything. We can have them chasing a new trend every week. And that is good for the economy. And what's good for the economy is good for the country.";
 const blurb = passage.split(' ');
@@ -83,7 +84,16 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   };
 
   const renderCursor = (charIndex: number, renderRaceInfo: RaceData): JSX.Element | null => {
-    const cursor = Object.values(renderRaceInfo.userInfo)
+    const { username } = useUser();
+    const localUser = {
+      ...renderRaceInfo.userInfo[username],
+      charsTyped: currentCharIndex,
+    };
+    const lUserInfo: {[key: string]: User; } = {
+      ...renderRaceInfo.userInfo,
+      [username]: localUser,
+    };
+    const cursor = Object.values(lUserInfo)
       .filter((user) => user.charsTyped === charIndex)
       .map((user) => (
         <span
