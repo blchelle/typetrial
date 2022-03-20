@@ -16,6 +16,7 @@ const WaitingRoom: React.FC = () => {
     start: new Date(),
     passage: '',
     users: [],
+    userInfo: {},
   });
   // const [username, setUsername] = useState('');
   const [websocket, setWebsocket] = useState<WebSocket>();
@@ -91,7 +92,7 @@ const WaitingRoom: React.FC = () => {
     <div>
       {/* {countDown} */}
       {raceInfo.hasStarted
-        ? <TypingZone />
+        ? <TypingZone websocket={websocket} raceInfo={raceInfo} />
         : (
           <>
             <List>

@@ -2,6 +2,8 @@ import { v4 } from 'uuid';
 import WebSocket from 'ws';
 import { RaceData, Message, RaceDataMessage } from '../utils/types';
 
+const playerColors = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
+
 // const NEWUSER = 'new_user';
 // const USERS = 'users';
 // const REMUSER = 'remove_user';
@@ -54,7 +56,9 @@ class WsHandler {
 
     this.userInfo.set(user, ws);
 
+    raceInfo.userInfo[user] = { color: playerColors[raceInfo.users.length], charsTyped: 0 };
     raceInfo.users.push(user);
+
     this.broadcast_race_info(raceInfo);
 
     return raceInfo;
@@ -95,16 +99,21 @@ class WsHandler {
     const now = new Date();
     const start = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON) + 10000);
     const raceInfo: RaceData = {
-      roomId, hasStarted: false, isPublic, start, passage: 'TODO', users: [],
+      roomId, hasStarted: false, isPublic, start, passage: 'TODO', users: [], userInfo: {},
     };
     this.rooms.set(roomId, raceInfo);
 
     return roomId;
   }
 
-  start_race(raceInfo: RaceData) {
+  start_race(_: string, raceInfo: RaceData) {
     // TODO check if user is leader
     raceInfo.hasStarted = true;
+    this.broadcast_race_info(raceInfo);
+  }
+
+  type_char(charsTyped: number, user: string, raceInfo: RaceData) {
+    raceInfo.userInfo[user].charsTyped = charsTyped;
     this.broadcast_race_info(raceInfo);
   }
 }
