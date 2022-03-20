@@ -16,8 +16,12 @@ interface Result {
   raceId: number,
   wpm: number,
   rank: number,
-  createdAt: Date,
-  passage: string
+  Race: {
+    Passage: {
+        text: string;
+    };
+    createdAt: Date;
+  };
 }
 
 const Profile: React.FC = () => {
@@ -36,12 +40,12 @@ const Profile: React.FC = () => {
 
   const rows = results.map((result) => (
     <tr key={result.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`race/${result.raceId}`)}>
-      <td>{(new Date(result.createdAt)).toLocaleDateString()}</td>
+      <td>{(new Date(result.Race.createdAt)).toLocaleDateString()}</td>
       <td style={{
         overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: '200px',
       }}
       >
-        {result.passage}
+        {result.Race.Passage.text}
       </td>
       <td>{result.rank}</td>
       <td>{result.wpm}</td>
