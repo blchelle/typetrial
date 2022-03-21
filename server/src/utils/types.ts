@@ -41,7 +41,7 @@ export interface RaceUpdateMessage extends OutMessage {
 }
 
 export interface ErrorMessage extends OutMessage {
-    type: "error";
+    type: 'error';
     message: string;
 }
 

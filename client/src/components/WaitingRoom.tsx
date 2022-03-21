@@ -60,6 +60,7 @@ const WaitingRoom: React.FC = () => {
       ws.onmessage = (res) => {
         const response: Message = JSON.parse(res.data);
         if (response.type === 'raceData') {
+          console.log("THIS");
           const updateResponse = response as RaceDataMessage;
           setRaceInfo(updateResponse.raceInfo);
         }
@@ -74,18 +75,11 @@ const WaitingRoom: React.FC = () => {
   };
 
   useEffect(() => {
-    useEffect(() => {
-      const user = useUser();
-      if (user) {
-        createSocket(user.username);
-      }
-      else {
-        const name = uuid();
-        createSocket(name);
-        localStorage.setItem('user', JSON.stringify({username: name}));
-      }
-      // setUsername(name);
-    }, []);
+    const user = useUser();
+    const name = user?.username ?? uuid();
+
+    createSocket(name);
+    // setUsername(name);
   }, []);
 
   const startRace = () => {
