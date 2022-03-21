@@ -60,7 +60,6 @@ const WaitingRoom: React.FC = () => {
       ws.onmessage = (res) => {
         const response: Message = JSON.parse(res.data);
         if (response.type === 'raceData') {
-          console.log("THIS");
           const updateResponse = response as RaceDataMessage;
           setRaceInfo(updateResponse.raceInfo);
         }
