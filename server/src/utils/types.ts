@@ -13,6 +13,11 @@ export interface RaceData {
     userInfo: {[key: string]: User; }
 }
 
+export interface UserInfo {
+    user: string;
+    raceInfo: RaceData;
+}
+
 export interface Message {
     type: string;
 }
@@ -33,6 +38,11 @@ export interface RaceDataMessage extends OutMessage {
 export interface RaceUpdateMessage extends OutMessage {
     type: 'update';
     update: any;
+}
+
+export interface ErrorMessage extends OutMessage {
+    type: "error";
+    message: string;
 }
 
 export interface ConnectPublicMessage extends InMessage {

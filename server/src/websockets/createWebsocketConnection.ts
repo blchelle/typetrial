@@ -4,59 +4,101 @@ import { Request } from 'express';
 import { writeLog } from '../utils/log';
 import WsHandler from '../websockets/websocketHandler';
 import {
-  RaceData, ConnectPrivateMessage, InMessage, TypeMessage,
+  UserInfo, ConnectPrivateMessage, InMessage, TypeMessage,
 } from '../utils/types';
 
-interface UserInfo {
-    user: string;
-    raceInfo: RaceData;
+export const sendError = (ws: WebSocket, message: string) => {
+  ws.send(JSON.stringify({type: "error", message}));
 }
 
-export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler) => {
-  let userInfo: UserInfo;
-  ws.on('message', (event) => {
-    // TODO idk error handle and make sure message meets these requirements
-    const message: InMessage = JSON.parse(event.toString());
-    if (message.type === 'connect_public') {
-      const raceInfo = wsHandler.connect_user_to_public_room(user, ws);
-      if (raceInfo) {
-        userInfo = { user, raceInfo };
-      } else {
-        // TODO handle something going terribly wrong
-      }
-    } else if (message.type === 'connect_private') {
-      // TODO idk error handle and make sure message meets these requirements
-      const privateMessage = <ConnectPrivateMessage> message;
-      const { roomId } = privateMessage;
-      const raceInfo = wsHandler.connect_user_to_room(user, ws, roomId);
-      if (raceInfo) {
-        userInfo = { user, raceInfo };
-      } else {
-        // TODO handle something going terribly wrong
-      }
-    } else if (message.type === 'create_private') {
-      const roomId = wsHandler.create_room(false);
-      const raceInfo = wsHandler.connect_user_to_room(user, ws, roomId);
-      if (raceInfo) {
-        userInfo = { user, raceInfo };
-      } else {
-        // TODO handle something going terribly wrong
-      }
-    } else if (message.type === 'start') {
-      wsHandler.start_race(user, userInfo.raceInfo);
-    } else if (message.type === 'type') {
-      const typeMessage = <TypeMessage> message;
-      const { charsTyped } = typeMessage;
+const safeCast = <T extends InMessage> (message: InMessage) => {
+  try {
+    return <T>message;
+  }
+  catch {
+    return undefined;
+  }
+}
 
-      wsHandler.type_char(charsTyped, user, userInfo.raceInfo);
+export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebSocket, event: any) => {
+  let message: InMessage | undefined
+    try {
+      message = JSON.parse(event.toString());
+    } 
+    catch {
+      message = undefined;
     }
-  });
+
+    if (message && message.type === 'connect_public') {
+      const raceInfo = wsHandler.connect_user_to_public_room(userInfo.user, ws);
+      if (raceInfo) {
+        userInfo = { user: userInfo.user, raceInfo };
+      } else {
+        sendError(ws, "Could not connect to room, please reload")
+      }
+    } else if (message && message.type === 'connect_private') {
+      const privateMessage = safeCast<ConnectPrivateMessage>(message);
+      if (!privateMessage) {
+        sendError(ws, "INVALID MESSAGE");
+      }
+      if (privateMessage) {
+        const { roomId } = privateMessage;
+        const raceInfo = wsHandler.connect_user_to_room(userInfo.user, ws, roomId);
+
+        if (raceInfo) {
+          userInfo = { user: userInfo.user, raceInfo };
+        }
+        else {
+          sendError(ws, "Could not connect to room, please reload");
+        }
+      } 
+    } else if (message && message.type === 'create_private') {
+      const roomId = wsHandler.create_room(false);
+      const raceInfo = wsHandler.connect_user_to_room(userInfo.user, ws, roomId);
+      if (raceInfo) {
+        userInfo = { user: userInfo.user, raceInfo };
+      } else {
+        sendError(ws, "Could not create room, please reload")
+      }
+    } else if (message && message.type === 'start') {
+      wsHandler.start_race(userInfo.user, userInfo.raceInfo);
+    } else if (message && message.type === 'type') {
+      const typeMessage = safeCast<TypeMessage>(message);
+      if (typeMessage) {
+        const { charsTyped } = typeMessage;
+
+        wsHandler.type_char(charsTyped, userInfo.user, userInfo.raceInfo);
+      }
+      else {
+        sendError(ws, "Could not update room")
+      }
+    }
+    else {
+      sendError(ws, "Wrong message type");
+    }
+}
+export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler, isTest: boolean = false) => {
+  let userInfo: UserInfo = {user, raceInfo: {
+    roomId: '',
+    hasStarted: false,
+    isPublic: false,
+    start: new Date(),
+    passage: '',
+    users: [],
+    userInfo: {},
+  }};
+
+  if (!isTest) {
+    ws.on('message', (event) => {
+      handleMessage(wsHandler, userInfo, ws, event)
+    });
+  }
 
   ws.onclose = () => {
     writeLog({ event: 'websocket closed', user: userInfo.user }, 'info');
     wsHandler.disconnect_user_from_room(userInfo.user, userInfo.raceInfo);
   };
-};
+}
 
 const createConnection = (app: expressWs.Application, wsHandler: WsHandler) => {
   app.ws('/api/connect/:user', (ws, req: Request) => {

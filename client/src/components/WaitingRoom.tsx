@@ -74,11 +74,18 @@ const WaitingRoom: React.FC = () => {
   };
 
   useEffect(() => {
-    const user = useUser();
-    const name = user?.username ?? uuid();
-
-    createSocket(name);
-    // setUsername(name);
+    useEffect(() => {
+      const user = useUser();
+      if (user) {
+        createSocket(user.username);
+      }
+      else {
+        const name = uuid();
+        createSocket(name);
+        localStorage.setItem('user', JSON.stringify({username: name}));
+      }
+      // setUsername(name);
+    }, []);
   }, []);
 
   const startRace = () => {
