@@ -6,20 +6,22 @@ import { useParams } from 'react-router-dom';
 import useUser from '@hooks/useUser';
 import axios from '@config/axios';
 
-  interface Result {
-    wpm: number,
-    rank: number,
-    userId: number,
-    username: string
-  }
-
-  interface Race {
-    id: number,
-    passageId: number,
-    passage: string,
-    createdAt: Date,
-    results: Result[]
-  }
+interface Race {
+  id: number,
+  passageId: number,
+  Passage: {
+    text: string;
+  };
+  Results: {
+      User: {
+          username: string;
+      };
+      wpm: number;
+      rank: number;
+      userId: number;
+  }[],
+  createdAt: Date,
+}
 
 const RaceInfo: React.FC = () => {
   const [race, setRace] = useState<Race>();
@@ -37,12 +39,12 @@ const RaceInfo: React.FC = () => {
   }, []);
 
   const date = race ? `Date: ${(new Date(race.createdAt)).toLocaleDateString()} ${(new Date(race.createdAt)).toLocaleTimeString()}` : '';
-  const passage = race ? `Passage: ${race.passage}` : '';
+  const passage = race ? `Passage: ${race.Passage.text}` : '';
 
-  const rows = race ? race.results.map((result) => (
+  const rows = race ? race.Results.map((result) => (
     <tr key={result.rank} style={{ background: user.id === result.userId ? 'goldenrod' : undefined }}>
       <td>{result.rank}</td>
-      <td>{result.username}</td>
+      <td>{result.User.username}</td>
       <td>{result.wpm}</td>
     </tr>
 

@@ -1,8 +1,5 @@
-import { StatusCodes } from 'http-status-codes';
 import db from '../prismaClient';
-
-import FieldError from '../errors/fieldError';
-import APIError from '../errors/apiError';
+import { NotFoundError } from '../errors/notFoundError';
 
 export const getRace = async (raceId: any) => {
   const intRaceId = parseInt(raceId, 10);
@@ -23,25 +20,6 @@ export const getRace = async (raceId: any) => {
     },
   });
 
-  if (!race) {
-    const error = new FieldError('raceId', intRaceId, 'is not associated with a race');
-    throw new APIError('invalid input', StatusCodes.NOT_FOUND, [error]);
-  }
-
-  const mappedRace = {
-    id: race.id,
-    passageId: race.passageId,
-    createdAt: race.createdAt,
-    passage: race.Passage.text,
-    results: race.Results.map(
-      (result) => ({
-        wpm: result.wpm,
-        rank: result.rank,
-        userId: result.userId,
-        username: result.User.username,
-      }),
-    ),
-  };
-
-  return mappedRace;
+  if (!race) throw new NotFoundError('error');
+  return race;
 };
