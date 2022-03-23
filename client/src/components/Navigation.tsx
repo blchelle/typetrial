@@ -33,7 +33,7 @@ const Navigation: React.FC = () => {
     <Header height={50}>
       <Group position="apart" spacing="xs">
         <Title order={2}>TypeTrial</Title>
-        { user ? (
+        { user.id ? (
           <Group spacing="sm">
             <Group spacing={8}>
               <Group direction="column" spacing={0} align="center">
