@@ -1,0 +1,17 @@
+.rumble {
+    position: absolute;
+    
+    animation: rumble 10ms linear infinite;
+}
+
+@keyframes rumble {
+    0% {
+        transform: translateX(5px);
+    }
+    50% {
+        transform: translateX(-5px);
+    }
+    100% {
+        transform: translateX(5px);
+    }
+}

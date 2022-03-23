@@ -1,23 +1,28 @@
 import React, { useState } from 'react';
 import {
+  Chip,
+  Chips,
   Container,
-  Paper, Text, TextInput, useMantineTheme,
+  Paper, Space, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
 import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
 import { RaceData, TypeMessage, User } from '@utils/types';
 import useUser from '@hooks/useUser';
 
-const passage = "We can now get these kids to buy just about anything. We can have them chasing a new trend every week. And that is good for the economy. And what's good for the economy is good for the country.";
-const blurb = passage.split(' ');
+import '../styles/powerups.css';
+
+const basePassage = "We can now get these kids to buy just about anything. We can have them chasing a new trend every week. And that is good for the economy. And what's good for the economy is good for the country.";
+let passage = basePassage;
+let blurb = passage.split(' ');
 
 interface TypingZoneProps {
-  websocket: any,
+  websocket?: any,
   raceInfo: RaceData,
 }
 
 let timer: NodeJS.Timer;
 const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
-  const theme = useMantineTheme();
+  const { colors } = useMantineTheme();
 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWordInput, setCurrentWordInput] = useState('');
@@ -26,27 +31,44 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const [currentCharIndex, setCurrentCharIndex] = useState<number>(0);
   const [error, setError] = useState(false);
 
+  const [powerups, setPowerups] = useState<string[]>([]);
+
+  if (powerups.includes('doubletap')) {
+    passage = basePassage.split(' ').map((word, i) => (i === currentWordIndex ? word + word : word)).join(' ');
+  } else {
+    passage = basePassage;
+  }
+
+  blurb = passage.split(' ');
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (powerups.includes('knockout')) return;
+
     const { value } = event.target;
 
     if (!startTime) {
       setStartTime(new Date().getTime());
     }
 
-    const typedChars = [...blurb.slice(0, currentWordIndex), '']
-      .join(' ').length + lastMatchingCharIndex(event.target.value, `${blurb[currentWordIndex]} `);
+    const targetWord = blurb[currentWordIndex];
+    const typedChars = [...blurb.slice(0, currentWordIndex), ''].join(' ').length + lastMatchingCharIndex(event.target.value, `${targetWord} `);
     setCurrentCharIndex(typedChars);
 
     if (
-      value === `${blurb[currentWordIndex]} `
-      || (value === blurb[currentWordIndex] && currentWordIndex === blurb.length - 1)
+      value === `${targetWord} `
+      || (value === targetWord && currentWordIndex === blurb.length - 1)
     ) {
       setError(false);
       setCurrentWordIndex(currentWordIndex + 1);
       setCurrentWordInput('');
+
+      if (powerups.includes('doubletap')) {
+        setCurrentCharIndex(currentCharIndex - Math.ceil(targetWord.length / 2) + 1);
+      }
+
       setEndTime(new Date().getTime());
       sendTypingUpdate(typedChars);
-    } else if (value !== blurb[currentWordIndex].substring(0, value.length)) {
+    } else if (value !== targetWord.substring(0, value.length)) {
       setError(true);
       setCurrentWordInput(event.target.value);
     } else {
@@ -121,7 +143,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
 
   return (
     <Container size="sm">
-      <Paper padding="xl" style={{ backgroundColor: theme.colors.blue[1] }}>
+      <Paper padding="xl" style={{ backgroundColor: colors.blue[1], position: 'relative' }}>
         <div className="relative w-full h-8 mb-8">
           <div
             className="h-full w-8 top-0 bg-primary absolute"
@@ -129,30 +151,48 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
           />
         </div>
         <div className="rounded-lg bg-gray-200 p-8">
-          <div className="mb-5">
+          <div className={powerups.includes('rumble') ? 'rumble' : ''}>
+            {passage.split('').map((letter, charIndex) => {
+              const charColor = (charIndex < currentCharIndex) ? colors.green[8] : colors.gray[9];
 
-            {blurb.join(' ').split('').map((letter, charindex) => {
-              const charColor = (charindex < currentCharIndex) ? theme.colors.green[8] : '';
+              const baseOpacity = powerups.includes('whiteout') ? 0.07 : 1;
+              const opacity = (charIndex < currentCharIndex) ? 1 : baseOpacity;
 
               return (
-                <Text style={{ display: 'inline', position: 'relative', color: charColor }}>
-                  {renderCursor(charindex, raceInfo)}
-                  {letter}
+                <Text style={{
+                  display: 'inline', position: 'relative', color: charColor,
+                }}
+                >
+                  {renderCursor(charIndex, raceInfo)}
+                  <span style={{ opacity }}>{letter}</span>
                 </Text>
-
               );
             })}
           </div>
+          {
+            powerups.includes('rumble') && (
+            <div style={{ opacity: 0 }}>
+              <Text>{passage}</Text>
+            </div>
+            )
+          }
           <TextInput
-            styles={{ defaultVariant: { backgroundColor: error ? theme.colors.red[5] : 'auto' } }}
+            styles={{ defaultVariant: { backgroundColor: error ? colors.red[5] : 'auto' } }}
             onChange={handleInputChange}
             value={currentWordInput}
-            disabled={currentWordIndex === blurb.length}
+            disabled={currentWordIndex === blurb.length || powerups.includes('knockout')}
+            mt="lg"
           />
           {currentWordIndex === blurb.length && <p>You Win!</p>}
           {startTime && endTime && <p>{`${convertTimeToWPM()} WPM`}</p>}
         </div>
       </Paper>
+      <Chips mt={8} value={powerups} onChange={setPowerups} multiple>
+        <Chip value="rumble">Rumble</Chip>
+        <Chip value="whiteout">Whiteout</Chip>
+        <Chip value="doubletap">Doubletap</Chip>
+        <Chip value="knockout">Knockout</Chip>
+      </Chips>
     </Container>
   );
 };
