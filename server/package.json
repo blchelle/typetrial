@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "NODE_ENV=development ts-node-dev --no-notify --exit-child ./src/server.ts",
-    "prod": "tsc && NODE_ENV=production pm2 startOrRestart pm2.config.js",
+    "prod": "yarn prisma:migrate:prod && tsc && NODE_ENV=production pm2 startOrRestart pm2.config.js",
     "compile": "tsc",
     "lint": "eslint src --ext .js,.ts --fix",
     "prisma:generate": "prisma generate",
