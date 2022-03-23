@@ -50,7 +50,7 @@ describe('WsHandler', () => {
   });
 
   it('connectUserNewRoom', async () => {
-    const wsHandler = new WsHandler(1);
+    const wsHandler = new WsHandler(1, undefined, undefined, 0);
     const data = wsHandler.connect_user_to_public_room(USER1, client1);
 
     expect(wsHandler.userInfo.size).toEqual(1);
@@ -66,7 +66,7 @@ describe('WsHandler', () => {
     rooms.set(ROOMID, RACEINFO1);
     userInfo.set(USER1, client1);
 
-    const wsHandler = new WsHandler(2, rooms, userInfo);
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
     wsHandler.connect_user_to_public_room(USER2, client2);
 
     expect(wsHandler.userInfo.size).toEqual(2);
@@ -80,17 +80,25 @@ describe('WsHandler', () => {
     mockServer.close();
   });
 
-  it('createNewRoom', () => {
-    const wsHandler = new WsHandler(1);
-    wsHandler.create_room(false);
+  it('createNewRoom', async () => {
+    const wsHandler = new WsHandler(1, undefined, undefined, 0);
+    const roomId = wsHandler.create_room(true);
     expect(wsHandler.rooms.size).toEqual(1);
+    /* eslint no-promise-executor-return: "error" */
+    await new Promise((res) => {
+      setTimeout(() => {
+        const raceInfo = wsHandler.rooms.get(roomId);
+        expect(raceInfo?.hasStarted).toEqual(true);
+        res(0);
+      }, 2);
+    });
   });
 
   it('connectUserFullPublicRoom', async () => {
     rooms.set(ROOMID, RACEINFO1);
     userInfo.set(USER1, client1);
 
-    const wsHandler = new WsHandler(1, rooms, userInfo);
+    const wsHandler = new WsHandler(1, rooms, userInfo, 0);
 
     wsHandler.connect_user_to_public_room(USER2, client2);
 
@@ -105,7 +113,7 @@ describe('WsHandler', () => {
     rooms.set(ROOMID, RACEINFO1);
     userInfo.set(USER1, client1);
 
-    const wsHandler = new WsHandler(1, rooms, userInfo);
+    const wsHandler = new WsHandler(1, rooms, userInfo, 0);
     wsHandler.disconnect_user_from_room(USER1, RACEINFO1);
 
     expect(wsHandler.userInfo.size).toEqual(0);
@@ -117,7 +125,7 @@ describe('WsHandler', () => {
     userInfo.set(USER1, client1);
     userInfo.set(USER2, client2);
 
-    const wsHandler = new WsHandler(2, rooms, userInfo);
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
     wsHandler.disconnect_user_from_room(USER2, RACEINFOFULL1);
 
     expect(wsHandler.userInfo.size).toEqual(1);
@@ -131,7 +139,7 @@ describe('WsHandler', () => {
     rooms.set(ROOMID, RACEINFO1);
     userInfo.set(USER1, client1);
 
-    const wsHandler = new WsHandler(2, rooms, userInfo);
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
     wsHandler.type_char(1, USER1, RACEINFO1);
 
     const updatedRaceInfo = {

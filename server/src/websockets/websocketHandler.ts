@@ -4,9 +4,6 @@ import { RaceData, Message, RaceDataMessage } from '../utils/types';
 
 export const PLAYER_COLORS = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
 
-// const NEWUSER = 'new_user';
-// const USERS = 'users';
-// const REMUSER = 'remove_user';
 const MINCON = 60000;
 
 class WsHandler {
@@ -16,14 +13,18 @@ class WsHandler {
 
   userInfo: Map<string, WebSocket>;
 
+  timeoutDuration: number;
+
   constructor(
     maxUsers: number,
     rooms?: Map<string, RaceData>,
     userInfo?: Map<string, WebSocket>,
+    timeoutDuration: number = 10000,
   ) {
     this.maxUsers = maxUsers;
     this.rooms = rooms || new Map<string, RaceData>();
     this.userInfo = userInfo || new Map<string, WebSocket>();
+    this.timeoutDuration = timeoutDuration;
   }
 
   broadcast_message(raceInfo: RaceData, message: Message) {
@@ -98,10 +99,19 @@ class WsHandler {
     }
 
     const now = new Date();
-    const start = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON) + 10000);
+    const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON));
+    const start = new Date(nowUtc.getTime() + this.timeoutDuration);
+
     const raceInfo: RaceData = {
       roomId, hasStarted: false, isPublic, start, passage: 'TODO', users: [], userInfo: {},
     };
+
+    if (isPublic) {
+      setTimeout(() => {
+        this.start_race('', raceInfo);
+      }, this.timeoutDuration);
+    }
+
     this.rooms.set(roomId, raceInfo);
 
     return roomId;

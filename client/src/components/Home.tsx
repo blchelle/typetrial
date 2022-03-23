@@ -2,9 +2,11 @@ import {
   Button, Card, Container, Grid, Group, Title, useMantineTheme,
 } from '@mantine/core';
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
   const { colors } = useMantineTheme();
+  const navigate = useNavigate();
   const whiteBg = { backgroundColor: colors.gray[0] };
 
   return (
@@ -14,7 +16,7 @@ const Home: React.FC = () => {
           <Card style={whiteBg}>
             <Group direction="column" spacing="xs">
               <Title order={4}>Race Opponents from Around the World</Title>
-              <Button>Join a Typing Race</Button>
+              <Button onClick={() => navigate('/room')}>Join a Typing Race</Button>
             </Group>
           </Card>
         </Grid.Col>
