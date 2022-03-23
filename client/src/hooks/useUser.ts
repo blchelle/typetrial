@@ -7,7 +7,6 @@ const useUser = () => {
   }
 
   const user = { username: uuid() };
-
   localStorage.setItem('user', JSON.stringify(user));
 
   return user;

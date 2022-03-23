@@ -66,7 +66,7 @@ const environment: { [_ in NodeEnv]: Environment } = {
     jwt: {
       secret: process.env.JWT_SECRET!,
       expiryTime: 60 * 60 * 24 * 7, // 7 Days
-      secure: true,
+      secure: false,
     },
     mailer: {
       apiKey: process.env.MAILER_API_KEY!,
