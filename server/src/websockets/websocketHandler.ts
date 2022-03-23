@@ -13,13 +13,13 @@ class WsHandler {
 
   userInfo: Map<string, WebSocket>;
 
-  timeoutDuration: number
+  timeoutDuration: number;
 
   constructor(
     maxUsers: number,
     rooms?: Map<string, RaceData>,
     userInfo?: Map<string, WebSocket>,
-    timeoutDuration: number = 10000
+    timeoutDuration: number = 10000,
   ) {
     this.maxUsers = maxUsers;
     this.rooms = rooms || new Map<string, RaceData>();
@@ -98,8 +98,8 @@ class WsHandler {
       roomId = v4();
     }
 
-    const now = new Date()
-    const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON))
+    const now = new Date();
+    const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON));
     const start = new Date(nowUtc.getTime() + this.timeoutDuration);
 
     const raceInfo: RaceData = {
@@ -108,8 +108,8 @@ class WsHandler {
 
     if (isPublic) {
       setTimeout(() => {
-        this.start_race("", raceInfo);
-      }, this.timeoutDuration)
+        this.start_race('', raceInfo);
+      }, this.timeoutDuration);
     }
 
     this.rooms.set(roomId, raceInfo);

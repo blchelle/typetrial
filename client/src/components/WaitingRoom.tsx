@@ -18,7 +18,7 @@ const WaitingRoom: React.FC = () => {
     users: [],
     userInfo: {},
   });
-  
+
   const [websocket, setWebsocket] = useState<WebSocket>();
   const [countDown, setCountDown] = useState(0);
 
@@ -34,7 +34,6 @@ const WaitingRoom: React.FC = () => {
         const response: Message = JSON.parse(res.data);
         if (response.type === 'raceData') {
           const updateResponse = response as RaceDataMessage;
-          console.log(updateResponse.raceInfo);
           setRaceInfo(updateResponse.raceInfo);
         }
       };
@@ -57,16 +56,17 @@ const WaitingRoom: React.FC = () => {
   useEffect(() => {
     if (raceInfo.isPublic) {
       const intervalId = setInterval(() => {
-        const now = new Date()
-        const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MILLISECONDS_PER_MINUTE));
-        const rem = Math.round((new Date(raceInfo.start).getTime() - nowUtc.getTime())/1000);
+        const now = new Date();
+        const nowUtc = new Date(now.getTime()
+            + (now.getTimezoneOffset() * MILLISECONDS_PER_MINUTE));
+        const rem = Math.round((new Date(raceInfo.start).getTime() - nowUtc.getTime()) / 1000);
         if (rem < 0) clearInterval(intervalId);
         else {
           setCountDown(rem);
         }
       }, 1000);
     }
-  }, [raceInfo.start])
+  }, [raceInfo.start]);
 
   const startRace = () => {
     const startMessage: StartMessage = {

@@ -6,10 +6,10 @@ const useUser = () => {
     return localStorage;
   }
 
-  const user = {username: uuid()};
+  const user = { username: uuid() };
 
   localStorage.setItem('user', JSON.stringify(user));
-  
+
   return user;
 };
 
