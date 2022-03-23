@@ -77,12 +77,11 @@ const WaitingRoom: React.FC = () => {
 
   return (
     <div>
-      {`Race Starting in: ${countDown}`}
       {raceInfo.hasStarted
         ? <TypingZone websocket={websocket} raceInfo={raceInfo} />
         : (
           <div>
-            {countDown && countDown}
+            {`Race Starting in: ${countDown}`}
             <List>
               {raceInfo.users.map((user) => <ListItem key={user}>{user}</ListItem>)}
             </List>
