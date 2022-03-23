@@ -82,8 +82,10 @@ describe('WsHandler', () => {
 
   it('createNewRoom', () => {
     const wsHandler = new WsHandler(1);
-    wsHandler.create_room(false);
+    const roomId = wsHandler.create_room(true, 0);
     expect(wsHandler.rooms.size).toEqual(1);
+    const raceInfo = wsHandler.rooms.get(roomId);
+    expect(raceInfo?.hasStarted).toEqual(true);
   });
 
   it('connectUserFullPublicRoom', async () => {

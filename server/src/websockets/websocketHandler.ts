@@ -4,9 +4,6 @@ import { RaceData, Message, RaceDataMessage } from '../utils/types';
 
 export const PLAYER_COLORS = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
 
-// const NEWUSER = 'new_user';
-// const USERS = 'users';
-// const REMUSER = 'remove_user';
 const MINCON = 60000;
 
 class WsHandler {
@@ -90,18 +87,27 @@ class WsHandler {
     return foundRoomId === '' ? this.create_room(true) : foundRoomId;
   }
 
-  create_room(isPublic: boolean) {
+  create_room(isPublic: boolean, duration: number = 10000) {
     let roomId = v4();
 
     while (this.rooms.has(roomId)) {
       roomId = v4();
     }
 
-    const now = new Date();
-    const start = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON) + 10000);
+    const now = new Date()
+    const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON))
+    const start = new Date(nowUtc.getTime() + duration);
+
     const raceInfo: RaceData = {
       roomId, hasStarted: false, isPublic, start, passage: 'TODO', users: [], userInfo: {},
     };
+
+    if (isPublic) {
+      setTimeout(() => {
+        this.start_race("", raceInfo);
+      }, duration)
+    }
+
     this.rooms.set(roomId, raceInfo);
 
     return roomId;

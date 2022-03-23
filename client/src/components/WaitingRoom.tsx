@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { v4 as uuid } from 'uuid';
 import { List, ListItem, Button } from '@mantine/core';
 import useUser from '@hooks/useUser';
-// import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
+import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
 import {
   Message, RaceDataMessage, RaceData, StartMessage,
 } from '../utils/types';
@@ -18,36 +18,9 @@ const WaitingRoom: React.FC = () => {
     users: [],
     userInfo: {},
   });
-  // const [username, setUsername] = useState('');
+  
   const [websocket, setWebsocket] = useState<WebSocket>();
-  // const [countDown, setCountDown] = useState(0);
-
-  // const processMessage = (resp: Response) => {
-  // if (resp.type === NEW_USER) {
-  //   const users = [...userList, resp.msg];
-  //   setUserList(users);
-  // } else if (resp.type === USERS) {
-  //   const roomConnection: RoomConnection = JSON.parse(resp.msg);
-  //   setUserList([username, ...roomConnection.users]);
-
-  //   const start = new Date(roomConnection.start);
-
-  //   const intervalId = setInterval(() => {
-  //     const now = new Date();
-  //     const rem = Math.round((start.getTime() - (new Date(now.getTime()
-  //     + (now.getTimezoneOffset() * MINCON)).getTime())) / 1000);
-  //     if (rem < 0) clearInterval(intervalId);
-  //     else {
-  //       setCountDown(rem);
-  //     }
-  //   }, 1000);
-  // } else if (resp.type === REMOVE_USER) {
-  //   const users = JSON.parse(resp.msg);
-  //   const index = users.indexOf(username);
-  //   users.splice(index, 1);
-  //   setUserList([username, ...users]);
-  // }
-  // };
+  const [countDown, setCountDown] = useState(0);
 
   const createSocket = async (name: string) => {
     const url = process.env.NODE_ENV === 'development' ? 'localhost:8080' : window.location.host;
@@ -61,6 +34,7 @@ const WaitingRoom: React.FC = () => {
         const response: Message = JSON.parse(res.data);
         if (response.type === 'raceData') {
           const updateResponse = response as RaceDataMessage;
+          console.log(updateResponse.raceInfo);
           setRaceInfo(updateResponse.raceInfo);
         }
       };
@@ -78,8 +52,21 @@ const WaitingRoom: React.FC = () => {
     const name = user?.username ?? uuid();
 
     createSocket(name);
-    // setUsername(name);
   }, []);
+
+  useEffect(() => {
+    if (raceInfo.isPublic) {
+      const intervalId = setInterval(() => {
+        const now = new Date()
+        const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MILLISECONDS_PER_MINUTE));
+        const rem = Math.round((new Date(raceInfo.start).getTime() - nowUtc.getTime())/1000);
+        if (rem < 0) clearInterval(intervalId);
+        else {
+          setCountDown(rem);
+        }
+      }, 1000);
+    }
+  }, [raceInfo.start])
 
   const startRace = () => {
     const startMessage: StartMessage = {
@@ -90,16 +77,17 @@ const WaitingRoom: React.FC = () => {
 
   return (
     <div>
-      {/* {countDown} */}
+      {`Race Starting in: ${countDown}`}
       {raceInfo.hasStarted
         ? <TypingZone websocket={websocket} raceInfo={raceInfo} />
         : (
-          <>
+          <div>
+            {countDown && countDown}
             <List>
               {raceInfo.users.map((user) => <ListItem key={user}>{user}</ListItem>)}
             </List>
-            <Button color="cyan" onClick={startRace}>Race your friends</Button>
-          </>
+            {!raceInfo.isPublic && <Button color="cyan" onClick={startRace}>Race your friends</Button>}
+          </div>
         )}
 
     </div>
