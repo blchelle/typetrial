@@ -13,14 +13,18 @@ class WsHandler {
 
   userInfo: Map<string, WebSocket>;
 
+  timeoutDuration: number
+
   constructor(
     maxUsers: number,
     rooms?: Map<string, RaceData>,
     userInfo?: Map<string, WebSocket>,
+    timeoutDuration: number = 10000
   ) {
     this.maxUsers = maxUsers;
     this.rooms = rooms || new Map<string, RaceData>();
     this.userInfo = userInfo || new Map<string, WebSocket>();
+    this.timeoutDuration = timeoutDuration;
   }
 
   broadcast_message(raceInfo: RaceData, message: Message) {
@@ -87,7 +91,7 @@ class WsHandler {
     return foundRoomId === '' ? this.create_room(true) : foundRoomId;
   }
 
-  create_room(isPublic: boolean, duration: number = 10000) {
+  create_room(isPublic: boolean) {
     let roomId = v4();
 
     while (this.rooms.has(roomId)) {
@@ -96,7 +100,7 @@ class WsHandler {
 
     const now = new Date()
     const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON))
-    const start = new Date(nowUtc.getTime() + duration);
+    const start = new Date(nowUtc.getTime() + this.timeoutDuration);
 
     const raceInfo: RaceData = {
       roomId, hasStarted: false, isPublic, start, passage: 'TODO', users: [], userInfo: {},
@@ -105,7 +109,7 @@ class WsHandler {
     if (isPublic) {
       setTimeout(() => {
         this.start_race("", raceInfo);
-      }, duration)
+      }, this.timeoutDuration)
     }
 
     this.rooms.set(roomId, raceInfo);
