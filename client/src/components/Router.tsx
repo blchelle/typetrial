@@ -15,7 +15,9 @@ const Router: React.FC = () => (
     <Group direction="column" align="center" mt={16}>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/room" element={<WaitingRoom />} />
+        <Route path="/room" element={<WaitingRoom isPublic isCreator={false} />} />
+        <Route path="/room/private" element={<WaitingRoom isPublic={false} isCreator />} />
+        <Route path="/room/private/:roomId" element={<WaitingRoom isPublic={false} isCreator={false} />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/race/:raceId" element={<RaceInfo />} />

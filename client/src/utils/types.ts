@@ -10,7 +10,8 @@ export interface RaceData {
     start: Date,
     passage: string,
     users: string [],
-    userInfo: {[key: string]: User; }
+    userInfo: {[key: string]: User; },
+    owner: string
 }
 
 export interface Message {
@@ -58,4 +59,9 @@ export interface StartMessage extends InMessage {
 export interface TypeMessage extends InMessage {
     type: 'type';
     charsTyped: number;
+}
+
+export interface ErrorMessage extends InMessage {
+    type: 'error';
+    message: string;
 }

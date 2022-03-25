@@ -32,7 +32,7 @@ const Home: React.FC = () => {
           <Card style={whiteBg}>
             <Group direction="column" spacing="xs">
               <Title order={5}>Create a room and invite your friends</Title>
-              <Button color="cyan">Race your friends</Button>
+              <Button color="cyan" onClick={() => navigate('/room/private')}>Race your friends</Button>
             </Group>
           </Card>
         </Grid.Col>

@@ -3,7 +3,7 @@ import {
   Chip,
   Chips,
   Container,
-  Paper, Space, Text, TextInput, useMantineTheme,
+  Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
 import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
 import { RaceData, TypeMessage, User } from '@utils/types';

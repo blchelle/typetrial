@@ -1,6 +1,8 @@
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
-import { RaceData, Message, RaceDataMessage } from '../utils/types';
+import {
+  RaceData, Message, RaceDataMessage, ErrorMessage,
+} from '../utils/types';
 
 export const PLAYER_COLORS = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
 
@@ -44,14 +46,17 @@ class WsHandler {
   }
 
   connect_user_to_public_room(user: string, ws: WebSocket): RaceData | undefined {
+    if (this.userInfo.get(user)) return undefined;
+
     const roomId = this.find_match();
     return this.connect_user_to_room(user, ws, roomId);
   }
 
   connect_user_to_room(user: string, ws: WebSocket, roomId: string): RaceData | undefined {
     const raceInfo = this.rooms.get(roomId);
+    const existingUser = this.userInfo.get(user);
 
-    if (!raceInfo) {
+    if (!raceInfo || existingUser) {
       return undefined;
     }
 
@@ -72,7 +77,11 @@ class WsHandler {
       raceInfo.users.splice(index, 1);
       delete raceInfo.userInfo[user];
 
-      if (raceInfo.users.length === 0) {
+      if (!raceInfo.hasStarted && user === raceInfo.owner) {
+        this.rooms.delete(raceInfo.roomId);
+        const message: ErrorMessage = { type: 'error', message: 'Room creator disconnected' };
+        this.broadcast_message(raceInfo, message);
+      } else if (raceInfo.users.length === 0) {
         this.rooms.delete(raceInfo.roomId);
       } else {
         this.broadcast_race_info(raceInfo);
@@ -91,7 +100,7 @@ class WsHandler {
     return foundRoomId === '' ? this.create_room(true) : foundRoomId;
   }
 
-  create_room(isPublic: boolean) {
+  create_room(isPublic: boolean, owner: string = '') {
     let roomId = v4();
 
     while (this.rooms.has(roomId)) {
@@ -103,7 +112,7 @@ class WsHandler {
     const start = new Date(nowUtc.getTime() + this.timeoutDuration);
 
     const raceInfo: RaceData = {
-      roomId, hasStarted: false, isPublic, start, passage: 'TODO', users: [], userInfo: {},
+      roomId, hasStarted: false, isPublic, start, passage: 'TODO', users: [], userInfo: {}, owner,
     };
 
     if (isPublic) {
@@ -117,10 +126,14 @@ class WsHandler {
     return roomId;
   }
 
-  start_race(_: string, raceInfo: RaceData) {
-    // TODO check if user is leader
-    raceInfo.hasStarted = true;
-    this.broadcast_race_info(raceInfo);
+  start_race(owner: string, raceInfo: RaceData) {
+    if (owner === raceInfo.owner) {
+      raceInfo.hasStarted = true;
+      this.broadcast_race_info(raceInfo);
+    } else {
+      const ws = this.userInfo.get(owner);
+      if (ws) { ws.send(JSON.stringify({ type: 'error', message: 'You do not have permision to start race' })); }
+    }
   }
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
