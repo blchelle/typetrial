@@ -3,26 +3,24 @@ import {
   Chip,
   Chips,
   Container,
-  Paper, Text, TextInput, useMantineTheme,
+  Paper, Text, TextInput, useMantineTheme, Title,
 } from '@mantine/core';
 import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
 import { RaceData, TypeMessage, User } from '@utils/types';
 import useUser from '@hooks/useUser';
+import { useModals } from '@mantine/modals';
 
 import '../styles/powerups.css';
 
-const basePassage = "We can now get these kids to buy just about anything. We can have them chasing a new trend every week. And that is good for the economy. And what's good for the economy is good for the country.";
-let passage = basePassage;
-let blurb = passage.split(' ');
-
 interface TypingZoneProps {
-  websocket?: any,
   raceInfo: RaceData,
+  websocket?: any
 }
 
 let timer: NodeJS.Timer;
 const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const { colors } = useMantineTheme();
+  const modals = useModals();
 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWordInput, setCurrentWordInput] = useState('');
@@ -33,13 +31,14 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
 
   const [powerups, setPowerups] = useState<string[]>([]);
 
+  let passage;
   if (powerups.includes('doubletap')) {
-    passage = basePassage.split(' ').map((word, i) => (i === currentWordIndex ? word + word : word)).join(' ');
+    passage = raceInfo.passage.split(' ').map((word, i) => (i === currentWordIndex ? word + word : word)).join(' ');
   } else {
-    passage = basePassage;
+    passage = raceInfo.passage;
   }
 
-  blurb = passage.split(' ');
+  const blurb = passage.split(' ');
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (powerups.includes('knockout')) return;
@@ -68,6 +67,10 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
 
       setEndTime(new Date().getTime());
       sendTypingUpdate(typedChars);
+
+      if (currentWordIndex + 1 === blurb.length) {
+        setTimeout(userFinish, 100);
+      }
     } else if (value !== targetWord.substring(0, value.length)) {
       setError(true);
       setCurrentWordInput(event.target.value);
@@ -140,6 +143,18 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       setEndTime(new Date().getTime());
     }
   }, 3000);
+
+  const userFinish = () => {
+    modals.openModal({
+      title: 'Finish!',
+      children: (
+        <>
+          <Title order={5}>Stats</Title>
+          <p>{`${convertTimeToWPM()} WPM`}</p>
+        </>
+      ),
+    });
+  };
 
   return (
     <Container size="sm">

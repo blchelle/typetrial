@@ -1,6 +1,8 @@
 export interface User {
     color: string;
     charsTyped: number;
+    wpm: number;
+    finishTime?: Date;
 }
 
 export interface RaceData {
@@ -8,7 +10,7 @@ export interface RaceData {
     hasStarted: boolean,
     isPublic: boolean,
     start: Date,
-    passage: string,
+    passage?: string,
     users: string [],
     userInfo: {[key: string]: User; },
     owner: string,

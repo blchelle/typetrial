@@ -1,5 +1,7 @@
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
+import { getPassage } from '../models/passage';
+import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
 import {
   RaceData, Message, RaceDataMessage, ErrorMessage,
 } from '../utils/types';
@@ -69,7 +71,7 @@ class WsHandler {
 
     this.userInfo.set(user, ws);
 
-    raceInfo.userInfo[user] = { color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0 };
+    raceInfo.userInfo[user] = { color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0, wpm: 0 };
     raceInfo.users.push(user);
 
     this.broadcast_race_info(raceInfo);
@@ -119,8 +121,13 @@ class WsHandler {
     const start = new Date(nowUtc.getTime() + this.timeoutDuration);
 
     const raceInfo: RaceData = {
-      roomId, hasStarted: false, isPublic, start, passage: 'TODO', users: [], userInfo: {}, owner,
+      roomId, hasStarted: false, isPublic, start, users: [], userInfo: {}, owner,
     };
+
+    getPassage().then((passage: string) => {
+      raceInfo.passage = passage;
+      this.broadcast_race_info(raceInfo);
+    });
 
     if (isPublic) {
       setTimeout(() => {
@@ -145,6 +152,11 @@ class WsHandler {
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
+    const endTime = new Date().getTime();
+    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime - raceInfo.start.getTime());
+
+    raceInfo.userInfo[user].wpm = wpm;
+
     this.broadcast_race_info(raceInfo);
   }
 }
