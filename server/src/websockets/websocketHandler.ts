@@ -56,7 +56,14 @@ class WsHandler {
     const raceInfo = this.rooms.get(roomId);
     const existingUser = this.userInfo.get(user);
 
-    if (!raceInfo || existingUser) {
+    if (!raceInfo) {
+      return undefined;
+    }
+
+    if (existingUser) {
+      if (raceInfo.users.length === 0) {
+        this.rooms.delete(roomId);
+      }
       return undefined;
     }
 

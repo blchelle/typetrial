@@ -232,4 +232,17 @@ describe('WsHandler', () => {
 
     expect(roomInfo).toEqual(undefined);
   });
+
+  it('ExistingUserTriesToRoom', async () => {
+    const RACEINFO = {
+      owner: '', roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 } },
+    };
+    rooms.set(ROOMID, RACEINFO);
+    userInfo.set(USER1, client1);
+
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
+    const roomInfo = wsHandler.connect_user_to_room(USER1, client2, ROOMID);
+    expect(wsHandler.rooms.size).toEqual(0);
+    expect(roomInfo).toEqual(undefined);
+  });
 });
