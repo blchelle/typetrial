@@ -49,7 +49,6 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
         if (response.type === 'raceData') {
           const updateResponse = response as RaceDataMessage;
           setRaceInfo(updateResponse.raceInfo);
-          console.log(updateResponse);
         } else if (response.type === 'error') {
           const errorResponse = response as ErrorMessage;
           setErrorMessage(errorResponse.message);

@@ -3,6 +3,7 @@ export interface User {
     charsTyped: number;
     wpm: number;
     finishTime?: Date;
+    finished: boolean;
 }
 
 export interface RaceData {

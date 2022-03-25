@@ -2,13 +2,12 @@ import { v4 } from 'uuid';
 import WebSocket from 'ws';
 import { getPassage } from '../models/passage';
 import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
+import { getUtcTime } from '../utils/helpers';
 import {
   RaceData, Message, RaceDataMessage, ErrorMessage,
 } from '../utils/types';
 
 export const PLAYER_COLORS = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
-
-const MINCON = 60000;
 
 class WsHandler {
   maxUsers: number;
@@ -71,7 +70,9 @@ class WsHandler {
 
     this.userInfo.set(user, ws);
 
-    raceInfo.userInfo[user] = { color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0, wpm: 0 };
+    raceInfo.userInfo[user] = {
+      color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0, wpm: 0, finished: false,
+    };
     raceInfo.users.push(user);
 
     this.broadcast_race_info(raceInfo);
@@ -116,9 +117,7 @@ class WsHandler {
       roomId = v4();
     }
 
-    const now = new Date();
-    const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON));
-    const start = new Date(nowUtc.getTime() + this.timeoutDuration);
+    const start = new Date(getUtcTime().getTime() + this.timeoutDuration);
 
     const raceInfo: RaceData = {
       roomId, hasStarted: false, isPublic, start, users: [], userInfo: {}, owner,
@@ -150,12 +149,25 @@ class WsHandler {
     }
   }
 
+  end_race(raceInfo: RaceData) {
+    // TODO
+    console.log('done');
+    this.broadcast_race_info(raceInfo);
+  }
+
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
-    const endTime = new Date().getTime();
+    const endTime = new Date(getUtcTime()).getTime();
     const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime - raceInfo.start.getTime());
-
     raceInfo.userInfo[user].wpm = wpm;
+
+    if (raceInfo.passage && charsTyped === raceInfo.passage.length) {
+      raceInfo.userInfo[user].finished = true;
+      const users = raceInfo.userInfo;
+      if (Object.values(users).every((u) => u.finished)) {
+        this.end_race(raceInfo);
+      }
+    }
 
     this.broadcast_race_info(raceInfo);
   }
