@@ -21,6 +21,7 @@ describe('WsHandler', () => {
   let ROOMID = '1';
   let RACEINFO1: RaceData;
   let RACEINFOFULL1: RaceData;
+  let RACEINFOPRIVATE: RaceData;
 
   const startDate = new Date();
 
@@ -38,10 +39,13 @@ describe('WsHandler', () => {
     USER2 = 'user2';
     ROOMID = '1';
     RACEINFO1 = {
-      roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 } },
+      owner: '', roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 } },
     };
     RACEINFOFULL1 = {
-      roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1, USER2], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 }, [USER2]: { color: PLAYER_COLORS[1], charsTyped: 0 } },
+      owner: '', roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1, USER2], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 }, [USER2]: { color: PLAYER_COLORS[1], charsTyped: 0 } },
+    };
+    RACEINFOPRIVATE = {
+      owner: USER1, roomId: ROOMID, hasStarted: false, isPublic: false, start: startDate, passage: 'TODO', users: [USER1, USER2], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 }, [USER2]: { color: PLAYER_COLORS[1], charsTyped: 0 } },
     };
   });
 
@@ -94,7 +98,7 @@ describe('WsHandler', () => {
     });
   });
 
-  it('connectUserFullPublicRoom', async () => {
+  it('connectUserFullRoom', async () => {
     rooms.set(ROOMID, RACEINFO1);
     userInfo.set(USER1, client1);
 
@@ -143,10 +147,102 @@ describe('WsHandler', () => {
     wsHandler.type_char(1, USER1, RACEINFO1);
 
     const updatedRaceInfo = {
-      roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 1 } },
+      owner: '', roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 1 } },
     };
     const message: RaceDataMessage = { type: 'raceData', raceInfo: updatedRaceInfo };
 
     await expect(mockServer).toReceiveMessage(JSON.stringify(message));
+  });
+
+  it('ownerStartRace', async () => {
+    rooms.set(ROOMID, RACEINFO1);
+    userInfo.set(USER1, client1);
+
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
+    wsHandler.start_race('', RACEINFO1);
+
+    const updatedRaceInfo = {
+      owner: '', roomId: ROOMID, hasStarted: true, isPublic: true, start: startDate, passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 } },
+    };
+    const message: RaceDataMessage = { type: 'raceData', raceInfo: updatedRaceInfo };
+
+    await expect(mockServer).toReceiveMessage(JSON.stringify(message));
+  });
+
+  it('nonOwnerStartRace', async () => {
+    rooms.set(ROOMID, RACEINFO1);
+    userInfo.set(USER1, client1);
+
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
+    wsHandler.start_race(USER1, RACEINFO1);
+
+    const message = { type: 'error', message: 'You do not have permision to start race' };
+
+    await expect(mockServer).toReceiveMessage(JSON.stringify(message));
+  });
+
+  it('OwnerDisconnectFromRoomNotStart', async () => {
+    rooms.set(ROOMID, RACEINFOPRIVATE);
+    userInfo.set(USER1, client1);
+    userInfo.set(USER2, client2);
+
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
+    wsHandler.disconnect_user_from_room(USER1, RACEINFOPRIVATE);
+
+    const message = { type: 'error', message: 'Room creator disconnected' };
+
+    await expect(mockServer).toReceiveMessage(JSON.stringify(message));
+  });
+
+  it('OwnerDisconnectFromRoomStart', async () => {
+    RACEINFOPRIVATE.hasStarted = true;
+    rooms.set(ROOMID, RACEINFOPRIVATE);
+    userInfo.set(USER1, client1);
+    userInfo.set(USER2, client2);
+
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
+    wsHandler.disconnect_user_from_room(USER1, RACEINFOPRIVATE);
+
+    const message = {
+      type: 'raceData',
+      raceInfo: {
+        owner: USER1, roomId: ROOMID, hasStarted: true, isPublic: false, start: startDate, passage: 'TODO', users: [USER2], userInfo: { [USER2]: { color: PLAYER_COLORS[1], charsTyped: 0 } },
+      },
+    };
+
+    await expect(mockServer).toReceiveMessage(JSON.stringify(message));
+  });
+
+  it('ExistingUserTriesToConnectPublic', async () => {
+    rooms.set(ROOMID, RACEINFO1);
+    userInfo.set(USER1, client1);
+
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
+    const roomInfo = wsHandler.connect_user_to_public_room(USER1, client2);
+
+    expect(roomInfo).toEqual(undefined);
+  });
+
+  it('ExistingUserTriesToRoom', async () => {
+    rooms.set(ROOMID, RACEINFO1);
+    userInfo.set(USER1, client1);
+
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
+    const roomInfo = wsHandler.connect_user_to_room(USER1, client2, '');
+
+    expect(roomInfo).toEqual(undefined);
+  });
+
+  it('ExistingUserTriesToRoom', async () => {
+    const RACEINFO = {
+      owner: '', roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 0 } },
+    };
+    rooms.set(ROOMID, RACEINFO);
+    userInfo.set(USER1, client1);
+
+    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
+    const roomInfo = wsHandler.connect_user_to_room(USER1, client2, ROOMID);
+    expect(wsHandler.rooms.size).toEqual(0);
+    expect(roomInfo).toEqual(undefined);
   });
 });

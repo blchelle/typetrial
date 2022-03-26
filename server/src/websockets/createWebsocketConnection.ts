@@ -32,6 +32,7 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
     if (raceInfo) {
       userInfo = { user: userInfo.user, raceInfo };
     } else {
+      userInfo.user = '';
       sendError(ws, 'Could not connect to room, please reload');
     }
   } else if (message && message.type === 'connect_private') {
@@ -46,15 +47,17 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
       if (raceInfo) {
         userInfo = { user: userInfo.user, raceInfo };
       } else {
+        userInfo.user = '';
         sendError(ws, 'Could not connect to room, please reload');
       }
     }
   } else if (message && message.type === 'create_private') {
-    const roomId = wsHandler.create_room(false);
+    const roomId = wsHandler.create_room(false, userInfo.user);
     const raceInfo = wsHandler.connect_user_to_room(userInfo.user, ws, roomId);
     if (raceInfo) {
       userInfo = { user: userInfo.user, raceInfo };
     } else {
+      userInfo.user = '';
       sendError(ws, 'Could not create room, please reload');
     }
   } else if (message && message.type === 'start') {
@@ -85,6 +88,7 @@ export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler,
       passage: '',
       users: [],
       userInfo: {},
+      owner: '',
     },
   };
 

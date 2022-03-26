@@ -3,7 +3,7 @@ import {
   Chip,
   Chips,
   Container,
-  Paper, Space, Text, TextInput, useMantineTheme,
+  Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
 import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
 import { RaceData, TypeMessage, User } from '@utils/types';
@@ -182,6 +182,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             value={currentWordInput}
             disabled={currentWordIndex === blurb.length || powerups.includes('knockout')}
             mt="lg"
+            autoFocus
           />
           {currentWordIndex === blurb.length && <p>You Win!</p>}
           {startTime && endTime && <p>{`${convertTimeToWPM()} WPM`}</p>}

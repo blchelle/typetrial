@@ -10,7 +10,8 @@ export interface RaceData {
     start: Date,
     passage: string,
     users: string [],
-    userInfo: {[key: string]: User; }
+    userInfo: {[key: string]: User; },
+    owner: string,
 }
 
 export interface UserInfo {
@@ -40,11 +41,6 @@ export interface RaceUpdateMessage extends OutMessage {
     update: any;
 }
 
-export interface ErrorMessage extends OutMessage {
-    type: 'error';
-    message: string;
-}
-
 export interface ConnectPublicMessage extends InMessage {
     type: 'connect_public';
     public: boolean;
@@ -68,4 +64,9 @@ export interface StartMessage extends InMessage {
 export interface TypeMessage extends InMessage {
     type: 'type';
     charsTyped: number;
+}
+
+export interface ErrorMessage extends OutMessage {
+    type: 'error',
+    message: string;
 }
