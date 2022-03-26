@@ -23,3 +23,12 @@ export const getRace = async (raceId: any) => {
   if (!race) throw new NotFoundError('error');
   return race;
 };
+
+export const createRace = async (passageId:number) => {
+  const race = await db.race.create({
+    data: {
+      passageId,
+    },
+  });
+  return race;
+};

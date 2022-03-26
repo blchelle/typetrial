@@ -12,6 +12,7 @@ export interface RaceData {
     isPublic: boolean,
     start: Date,
     passage?: string,
+    passageId?: number,
     users: string [],
     userInfo: {[key: string]: User; },
     owner: string,

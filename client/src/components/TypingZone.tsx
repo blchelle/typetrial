@@ -163,7 +163,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             mt="lg"
           />
           {currentWordIndex === blurb.length && <p>You Win!</p>}
-          <p>{`${Math.floor(raceInfo.userInfo[username].wpm)} WPM`}</p>
+          <p>{`${raceInfo.userInfo[username].wpm} WPM`}</p>
         </div>
       </Paper>
       <Chips mt={8} value={powerups} onChange={setPowerups} multiple>

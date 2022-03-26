@@ -1,6 +1,10 @@
+import { Passage } from '@prisma/client';
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
 import { getPassage } from '../models/passage';
+import { createRace } from '../models/race';
+import { createResult } from '../models/result';
+import { getUserByUsername } from '../models/user';
 import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
 import { getUtcTime } from '../utils/helpers';
 import {
@@ -123,8 +127,10 @@ class WsHandler {
       roomId, hasStarted: false, isPublic, start, users: [], userInfo: {}, owner,
     };
 
-    getPassage().then((passage: string) => {
-      raceInfo.passage = passage;
+    // This promise chain is required, since await in a websocket causes blocking for other users in other rooms
+    getPassage().then((passage:Passage) => {
+      raceInfo.passage = passage.text;
+      raceInfo.passageId = passage.id;
       this.broadcast_race_info(raceInfo);
     });
 
@@ -149,17 +155,31 @@ class WsHandler {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   end_race(raceInfo: RaceData) {
-    // TODO
-    console.log('done');
-    this.broadcast_race_info(raceInfo);
+    // This promise chain monstrosity is required, since await in a websocket
+    // causes blocking for other users in other rooms
+    if (raceInfo.passageId) {
+      createRace(raceInfo.passageId).then((dbRace) => {
+        Object.entries(raceInfo.userInfo).forEach(([username, user]) => {
+          getUserByUsername(username).then((dbUser) => {
+            if (dbUser) {
+              createResult(dbUser.id, dbRace.id, user.wpm, 1);
+            }
+          });
+        });
+      });
+    }
+    // Object.keys(raceInfo.userInfo).forEach((username) => {
+    //   this.disconnect_user_from_room(username, raceInfo);
+    // });
   }
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
     const endTime = new Date(getUtcTime());
     const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.start.getTime());
-    raceInfo.userInfo[user].wpm = wpm;
+    raceInfo.userInfo[user].wpm = Math.floor(wpm);
 
     if (raceInfo.passage && charsTyped === raceInfo.passage.length) {
       raceInfo.userInfo[user].finished = true;
