@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuid } from 'uuid';
 import {
-  Modal, List, ListItem, Button,
+  List, ListItem, Button, Text,
 } from '@mantine/core';
+import { useModals } from '@mantine/modals';
 import useUser from '@hooks/useUser';
 import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -10,6 +11,7 @@ import {
   Message, RaceDataMessage, RaceData, StartMessage, ErrorMessage,
 } from '../utils/types';
 import TypingZone from './TypingZone';
+import env from '../config/environment';
 
 interface WaitingRoomProps {
   isPublic: boolean;
@@ -29,16 +31,33 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
   });
 
   const [websocket, setWebsocket] = useState<WebSocket>();
-  const [countDown, setCountDown] = useState(0);
+  const [countDown, setCountDown] = useState(10);
   const [errorMessage, setErrorMessage] = useState('');
-  const [isError, setIsError] = useState(false);
   const roomId = !isPublic && !isCreator ? useParams().roomId : '';
+  const modals = useModals();
   const navigate = useNavigate();
-  const serverUrl = process.env.NODE_ENV === 'development' ? 'localhost:3000' : window.location.host;
+
+  const openModal = () => {
+    modals.openModal(
+      {
+        title: errorMessage,
+        size: 400,
+        onClose: () => handleError(),
+        children:
+  <div>
+    <Text>
+      Closing this will navigate you back to the home screen.
+    </Text>
+    <Button onClick={() => handleError()}>
+      Close
+    </Button>
+  </div>,
+      },
+    );
+  };
 
   const createSocket = async (name: string) => {
-    const url = process.env.NODE_ENV === 'development' ? 'localhost:8080' : window.location.host;
-    const ws = new WebSocket(`ws://${url}/api/connect/${name}`);
+    const ws = new WebSocket(`${env.baseSocketUrl}/api/connect/${name}`);
 
     ws.onopen = () => {
       setWebsocket(ws);
@@ -52,7 +71,6 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
         } else if (response.type === 'error') {
           const errorResponse = response as ErrorMessage;
           setErrorMessage(errorResponse.message);
-          setIsError(true);
         }
       };
 
@@ -86,6 +104,12 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
   }, []);
 
   useEffect(() => {
+    if (errorMessage !== '') {
+      openModal();
+    }
+  }, [errorMessage]);
+
+  useEffect(() => {
     if (raceInfo.isPublic) {
       const intervalId = setInterval(() => {
         const now = new Date();
@@ -110,23 +134,16 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
   const handleError = () => {
     websocket?.close();
     navigate('/');
+    modals.closeAll();
   };
 
   return (
     <div>
-      <Modal
-        opened={isError}
-        onClose={() => handleError()}
-        title={errorMessage}
-      >
-        Closing this will navigate you back to the home screen
-      </Modal>
-      {!isError
-      && raceInfo.hasStarted
+      {raceInfo.hasStarted
         ? <TypingZone websocket={websocket} raceInfo={raceInfo} />
         : (
           <div>
-            {isPublic ? (`Race Starting in: ${countDown}`) : (`http://${serverUrl}/room/private/${raceInfo.roomId}`)}
+            {isPublic ? (`Race Starting in: ${countDown}`) : (raceInfo.roomId !== '' && `${env.baseClientUrl}/room/private/${raceInfo.roomId}`)}
             <List>
               {raceInfo.users.map((user) => <ListItem key={user}>{user}</ListItem>)}
             </List>
