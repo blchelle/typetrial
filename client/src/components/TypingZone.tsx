@@ -3,13 +3,13 @@ import {
   Chip,
   Chips,
   Container,
-  Paper, Text, TextInput, useMantineTheme, Title,
+  Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
 import { RaceData, TypeMessage, User } from '@utils/types';
 import useUser from '@hooks/useUser';
-import { useModals } from '@mantine/modals';
 
 import '../styles/powerups.css';
+import FinishModal from './FinishModal';
 
 interface TypingZoneProps {
   raceInfo: RaceData,
@@ -18,7 +18,6 @@ interface TypingZoneProps {
 
 const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const { colors } = useMantineTheme();
-  const modals = useModals();
   const { username } = useUser();
 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -62,10 +61,6 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       }
 
       sendTypingUpdate(typedChars);
-
-      if (currentWordIndex + 1 === blurb.length) {
-        setTimeout(userFinish, 100);
-      }
     } else if (value !== targetWord.substring(0, value.length)) {
       setError(true);
       setCurrentWordInput(event.target.value);
@@ -120,20 +115,13 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
     return cursor;
   };
 
-  const userFinish = () => {
-    modals.openModal({
-      title: 'Finish!',
-      children: (
-        <>
-          <Title order={5}>Stats</Title>
-          <p>{`${Math.floor(raceInfo.userInfo[username].wpm)} WPM`}</p>
-        </>
-      ),
-    });
-  };
-
   return (
     <Container size="sm">
+      <FinishModal
+        raceInfo={raceInfo}
+        opened={currentWordIndex === blurb.length}
+
+      />
       <Paper padding="xl" style={{ backgroundColor: colors.blue[1], position: 'relative' }}>
         <div className="relative w-full h-8 mb-8">
           <div

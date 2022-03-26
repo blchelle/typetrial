@@ -157,12 +157,13 @@ class WsHandler {
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
-    const endTime = new Date(getUtcTime()).getTime();
-    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime - raceInfo.start.getTime());
+    const endTime = new Date(getUtcTime());
+    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.start.getTime());
     raceInfo.userInfo[user].wpm = wpm;
 
     if (raceInfo.passage && charsTyped === raceInfo.passage.length) {
       raceInfo.userInfo[user].finished = true;
+      raceInfo.userInfo[user].finishTime = endTime;
       const users = raceInfo.userInfo;
       if (Object.values(users).every((u) => u.finished)) {
         this.end_race(raceInfo);
