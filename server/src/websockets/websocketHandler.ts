@@ -170,9 +170,6 @@ class WsHandler {
         });
       });
     }
-    // Object.keys(raceInfo.userInfo).forEach((username) => {
-    //   this.disconnect_user_from_room(username, raceInfo);
-    // });
   }
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {

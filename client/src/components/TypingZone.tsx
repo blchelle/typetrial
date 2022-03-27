@@ -161,6 +161,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             value={currentWordInput}
             disabled={currentWordIndex === blurb.length || powerups.includes('knockout')}
             mt="lg"
+            autoFocus
           />
           {currentWordIndex === blurb.length && <p>You Win!</p>}
           <p>{`${raceInfo.userInfo[username].wpm} WPM`}</p>

@@ -64,7 +64,7 @@ export interface TypeMessage extends InMessage {
     charsTyped: number;
 }
 
-export interface ErrorMessage extends OutMessage {
-    type: 'error',
+export interface ErrorMessage extends InMessage {
+    type: 'error';
     message: string;
 }
