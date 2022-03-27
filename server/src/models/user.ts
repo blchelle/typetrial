@@ -190,6 +190,10 @@ export const signupUser = async (inputUser: SignupInput) => db.user.create({ dat
 
 export const getUserById = async (id: number) => db.user.findUnique({ where: { id } });
 
+export const getUserByEmail = async (email: string) => db.user.findUnique({ where: { email } });
+
+export const getUserByUsername = async (username: string) => db.user.findUnique({ where: { username } });
+
 export const createResetPasswordToken = async (user: User) => {
   const now = new Date();
   const expiryTime = 1000 * 60 * 15; // 15 Minutes

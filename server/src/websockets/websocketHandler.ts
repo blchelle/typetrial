@@ -1,12 +1,17 @@
+import { Passage } from '@prisma/client';
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
+import { getPassage } from '../models/passage';
+import { createRace } from '../models/race';
+import { createResult } from '../models/result';
+import { getUserByUsername } from '../models/user';
+import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
+import { getUtcTime } from '../utils/helpers';
 import {
   RaceData, Message, RaceDataMessage, ErrorMessage,
 } from '../utils/types';
 
 export const PLAYER_COLORS = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
-
-const MINCON = 60000;
 
 class WsHandler {
   maxUsers: number;
@@ -69,7 +74,9 @@ class WsHandler {
 
     this.userInfo.set(user, ws);
 
-    raceInfo.userInfo[user] = { color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0 };
+    raceInfo.userInfo[user] = {
+      color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0, wpm: 0, finished: false,
+    };
     raceInfo.users.push(user);
 
     this.broadcast_race_info(raceInfo);
@@ -114,13 +121,18 @@ class WsHandler {
       roomId = v4();
     }
 
-    const now = new Date();
-    const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MINCON));
-    const start = new Date(nowUtc.getTime() + this.timeoutDuration);
+    const start = new Date(getUtcTime().getTime() + this.timeoutDuration);
 
     const raceInfo: RaceData = {
-      roomId, hasStarted: false, isPublic, start, passage: 'TODO', users: [], userInfo: {}, owner,
+      roomId, hasStarted: false, isPublic, start, users: [], userInfo: {}, owner,
     };
+
+    // This promise chain is required, since await in a websocket causes blocking for other users in other rooms
+    getPassage().then((passage:Passage) => {
+      raceInfo.passage = passage.text;
+      raceInfo.passageId = passage.id;
+      this.broadcast_race_info(raceInfo);
+    });
 
     if (isPublic) {
       setTimeout(() => {
@@ -143,8 +155,38 @@ class WsHandler {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  end_race(raceInfo: RaceData) {
+    // This promise chain monstrosity is required, since await in a websocket
+    // causes blocking for other users in other rooms
+    if (raceInfo.passageId) {
+      createRace(raceInfo.passageId).then((dbRace) => {
+        Object.entries(raceInfo.userInfo).forEach(([username, user]) => {
+          getUserByUsername(username).then((dbUser) => {
+            if (dbUser) {
+              createResult(dbUser.id, dbRace.id, user.wpm, 1);
+            }
+          });
+        });
+      });
+    }
+  }
+
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
+    const endTime = new Date(getUtcTime());
+    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.start.getTime());
+    raceInfo.userInfo[user].wpm = Math.floor(wpm);
+
+    if (raceInfo.passage && charsTyped === raceInfo.passage.length) {
+      raceInfo.userInfo[user].finished = true;
+      raceInfo.userInfo[user].finishTime = endTime;
+      const users = raceInfo.userInfo;
+      if (Object.values(users).every((u) => u.finished)) {
+        this.end_race(raceInfo);
+      }
+    }
+
     this.broadcast_race_info(raceInfo);
   }
 }
