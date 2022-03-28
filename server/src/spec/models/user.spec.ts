@@ -9,7 +9,7 @@ import { ForbiddenError } from '../../errors/forbiddenError';
 
 import {
   createResetPasswordToken,
-  getUserById,
+  getUserByField,
   resetPassword,
   sanitizeUserOutput,
   signupUser,
@@ -33,6 +33,18 @@ describe('user', () => {
     updatedAt: new Date(),
     passwordChangedAt: new Date(),
     Results: [],
+  };
+
+  const mockUserWithResults = {
+    id: 1,
+    username: 'testuser',
+    email: 'test@test.com',
+    password: 'secret',
+    role: Role.USER,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    passwordChangedAt: new Date(),
+    Results: { wpm: 0, count: 0 },
   };
 
   const mockToken = {
@@ -374,21 +386,21 @@ describe('user', () => {
     });
   });
 
-  describe(getUserById, () => {
+  describe(getUserByField, () => {
     const id = 1;
 
     it('returns the user on success', async () => {
       dbMock.user.findUnique.mockResolvedValue(mockUser);
 
-      const user = await getUserById(id);
-      expect(user).to.deep.equal(mockUser);
+      const user = await getUserByField('id', id);
+      expect(user).to.deep.equal(mockUserWithResults);
     });
 
     it('returns error on failure', async () => {
       dbMock.user.findUnique.mockRejectedValue(new PrismaClientValidationError('test error'));
 
       await expectThrowsAsync(
-        () => getUserById(id),
+        () => getUserByField('id', id),
         new PrismaClientValidationError('test error'),
       );
     });

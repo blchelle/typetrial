@@ -2,6 +2,7 @@ import argon2 from 'argon2';
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import APIError from '../errors/apiError';
+import { UnauthenticatedError } from '../errors/unauthenticatedError';
 
 import { createJWT } from '../middlewares/authMiddleware';
 import {
@@ -73,4 +74,11 @@ export const handleLogoutUser = async (_: Request, res: Response) => {
     .cookie('Bearer', 'logged_out', { maxAge: 10 * 1000, httpOnly: true, secure: false })
     .status(StatusCodes.OK)
     .end();
+};
+
+export const handleGetMe = async (req: Request, res: Response) => {
+  const { user } = req;
+  if (!user) throw new UnauthenticatedError();
+
+  res.status(StatusCodes.OK).json({ data: sanitizeUserOutput(user), error: null });
 };

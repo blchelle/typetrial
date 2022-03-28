@@ -5,7 +5,7 @@ import jwt, { JsonWebTokenError } from 'jsonwebtoken';
 
 import env from '../config/environment';
 import APIError from '../errors/apiError';
-import { getUserById } from '../models/user';
+import { getUserByField } from '../models/user';
 
 export const createJWT = (userId: number, res: Response) => {
   const { secret, expiryTime, secure } = env.jwt;
@@ -20,12 +20,12 @@ export const createJWT = (userId: number, res: Response) => {
   res.cookie('Bearer', token, cookieOptions);
 };
 
-const validateJWT = (authHeader?: string) => {
-  if (!authHeader) return { token: null, error: new JsonWebTokenError('no token provided') };
+const validateJWT = (cookie?: string) => {
+  if (!cookie) return { token: null, error: new JsonWebTokenError('no token provided') };
 
   // Verify that the authorization header used a Bearer token
   // Splitting the header on a space will give us an array like this -> [TokenType, Token]
-  const [tokenType, token] = authHeader.split(' ');
+  const [tokenType, token] = cookie.split('=');
   if (tokenType !== 'Bearer') {
     return { token: null, error: new JsonWebTokenError('invalid token type') };
   }
@@ -48,14 +48,14 @@ const checkPermissions = (userRole: Role, requiredRole: Role) => {
 };
 
 export const protectRoute = (minRole: Role) => async (req: Request, _: Response, next: NextFunction) => {
-  const { authorization } = req.headers;
+  const { cookie } = req.headers;
 
   try {
-    const { token, error } = validateJWT(authorization);
+    const { token, error } = validateJWT(cookie);
     if (error) return next(error);
     if (!token?.id) return next(new JsonWebTokenError('no user id on token'));
 
-    const user = await getUserById(token.id);
+    const user = await getUserByField('id', token.id);
     if (!user) return next(new JsonWebTokenError('user in token does not exist'));
 
     if (user.passwordChangedAt && user.passwordChangedAt.getTime() > token.iat) {

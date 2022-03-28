@@ -2,7 +2,6 @@ import {
   Button, Card, Container, Grid, Group, Title, useMantineTheme,
 } from '@mantine/core';
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
   const { colors } = useMantineTheme();
@@ -15,7 +14,7 @@ const Home: React.FC = () => {
           <Card style={whiteBg}>
             <Group direction="column" spacing="xs">
               <Title order={4}>Race Opponents from Around the World</Title>
-              <Link to="/room"><Button>Join a Typing Race</Button></Link>
+              <Button onClick={() => { window.location.href = '/room'; }}>Join a Typing Race</Button>
             </Group>
           </Card>
         </Grid.Col>
@@ -23,7 +22,7 @@ const Home: React.FC = () => {
           <Card style={whiteBg}>
             <Group direction="column" spacing="xs">
               <Title order={5}>Improve your typing skills alone</Title>
-              <Link to="/room/solo"><Button color="cyan">Practice Typing Alone</Button></Link>
+              <Button onClick={() => { window.location.href = '/room/solo'; }} color="cyan">Practice Typing Alone</Button>
             </Group>
           </Card>
         </Grid.Col>
@@ -31,7 +30,7 @@ const Home: React.FC = () => {
           <Card style={whiteBg}>
             <Group direction="column" spacing="xs">
               <Title order={5}>Create a room and invite your friends</Title>
-              <Link to="/room/private"><Button color="cyan">Race your friends</Button></Link>
+              <Button onClick={() => { window.location.href = '/room/private'; }} color="cyan">Race your Friends</Button>
             </Group>
           </Card>
         </Grid.Col>
