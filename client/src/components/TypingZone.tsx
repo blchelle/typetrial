@@ -120,7 +120,6 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       <FinishModal
         raceInfo={raceInfo}
         opened={currentWordIndex === blurb.length}
-
       />
       <Paper padding="xl" style={{ backgroundColor: colors.blue[1], position: 'relative' }}>
         <div className="relative w-full h-8 mb-8">

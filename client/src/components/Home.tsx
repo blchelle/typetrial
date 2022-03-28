@@ -2,11 +2,10 @@ import {
   Button, Card, Container, Grid, Group, Title, useMantineTheme,
 } from '@mantine/core';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
   const { colors } = useMantineTheme();
-  const navigate = useNavigate();
   const whiteBg = { backgroundColor: colors.gray[0] };
 
   return (
@@ -16,7 +15,7 @@ const Home: React.FC = () => {
           <Card style={whiteBg}>
             <Group direction="column" spacing="xs">
               <Title order={4}>Race Opponents from Around the World</Title>
-              <Button onClick={() => navigate('/room')}>Join a Typing Race</Button>
+              <Link to="/room"><Button>Join a Typing Race</Button></Link>
             </Group>
           </Card>
         </Grid.Col>
@@ -24,7 +23,7 @@ const Home: React.FC = () => {
           <Card style={whiteBg}>
             <Group direction="column" spacing="xs">
               <Title order={5}>Improve your typing skills alone</Title>
-              <Button color="cyan">Practice Typing Alone</Button>
+              <Link to="/room/solo"><Button color="cyan">Practice Typing Alone</Button></Link>
             </Group>
           </Card>
         </Grid.Col>
@@ -32,7 +31,7 @@ const Home: React.FC = () => {
           <Card style={whiteBg}>
             <Group direction="column" spacing="xs">
               <Title order={5}>Create a room and invite your friends</Title>
-              <Button color="cyan" onClick={() => navigate('/room/private')}>Race your friends</Button>
+              <Link to="/room/private"><Button color="cyan">Race your friends</Button></Link>
             </Group>
           </Card>
         </Grid.Col>

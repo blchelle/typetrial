@@ -4,7 +4,7 @@ import { Request } from 'express';
 import { writeLog } from '../utils/log';
 import WsHandler from '../websockets/websocketHandler';
 import {
-  UserInfo, ConnectPrivateMessage, InMessage, TypeMessage,
+  UserInfo, ConnectPrivateMessage, CreatePrivateMessage, InMessage, TypeMessage,
 } from '../utils/types';
 
 export const sendError = (ws: WebSocket, message: string) => {
@@ -52,8 +52,15 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
       }
     }
   } else if (message && message.type === 'create_private') {
-    const roomId = wsHandler.create_room(false, userInfo.user);
+    const createPrivateMessage = safeCast<CreatePrivateMessage>(message);
+    if (!createPrivateMessage) {
+      sendError(ws, 'INVALID MESSAGE');
+      return userInfo;
+    }
+
+    const roomId = wsHandler.create_room(false, createPrivateMessage.solo, userInfo.user);
     const raceInfo = wsHandler.connect_user_to_room(userInfo.user, ws, roomId);
+
     if (raceInfo) {
       userInfo = { user: userInfo.user, raceInfo };
     } else {
@@ -84,6 +91,7 @@ export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler,
       roomId: '',
       hasStarted: false,
       isPublic: false,
+      isSolo: false,
       start: new Date(),
       passage: '',
       users: [],

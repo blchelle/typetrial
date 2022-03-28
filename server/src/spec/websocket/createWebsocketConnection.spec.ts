@@ -34,13 +34,13 @@ describe('WsHandler', () => {
     mockConnectUserToPublicRoom = jest
       .spyOn(WsHandler.prototype, 'connect_user_to_public_room')
       .mockImplementation(() => ({
-        owner: '', roomId: '', hasStarted: false, isPublic: true, start: startDate, passage: '', users: [], userInfo: {},
+        owner: '', roomId: '', hasStarted: false, isPublic: true, isSolo: false, start: startDate, passage: '', users: [], userInfo: {},
       }));
 
     mockConnectUserToRoom = jest
       .spyOn(WsHandler.prototype, 'connect_user_to_room')
       .mockImplementation(() => ({
-        owner: '', roomId: '', hasStarted: false, isPublic: true, start: startDate, passage: '', users: [], userInfo: {},
+        owner: '', roomId: '', hasStarted: false, isPublic: true, isSolo: false, start: startDate, passage: '', users: [], userInfo: {},
       }));
 
     mockCreateRoom = jest
@@ -58,7 +58,7 @@ describe('WsHandler', () => {
     userInfo = {
       user: USER1,
       raceInfo: {
-        owner: '', roomId: '', hasStarted: false, isPublic: true, start: startDate, passage: '', users: [], userInfo: {},
+        owner: '', roomId: '', hasStarted: false, isPublic: true, isSolo: false, start: startDate, passage: '', users: [], userInfo: {},
       },
     };
   });
