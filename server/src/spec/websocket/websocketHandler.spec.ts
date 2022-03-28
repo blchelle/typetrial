@@ -52,6 +52,7 @@ describe('WsHandler', () => {
       roomId: ROOMID,
       hasStarted: false,
       isPublic: true,
+      isSolo: false,
       start: startDate,
       passage: 'TODO',
       users: [USER1],
@@ -66,6 +67,7 @@ describe('WsHandler', () => {
       roomId: ROOMID,
       hasStarted: false,
       isPublic: true,
+      isSolo: false,
       start: startDate,
       passage: 'TODO',
       users: [USER1, USER2],
@@ -83,6 +85,7 @@ describe('WsHandler', () => {
       roomId: ROOMID,
       hasStarted: false,
       isPublic: false,
+      isSolo: false,
       start: startDate,
       passage: 'TODO',
       users: [USER1, USER2],
@@ -139,7 +142,7 @@ describe('WsHandler', () => {
     mockGetPassage.mockResolvedValue(EXAMPLE_PASSAGE);
 
     const wsHandler = new WsHandler(1, undefined, undefined, 0);
-    const roomId = wsHandler.create_room(true);
+    const roomId = wsHandler.create_room(true, false);
     expect(wsHandler.rooms.size).toEqual(1);
     /* eslint no-promise-executor-return: "error" */
     await new Promise((res) => {
@@ -221,6 +224,7 @@ describe('WsHandler', () => {
       roomId: ROOMID,
       hasStarted: true,
       isPublic: true,
+      isSolo: false,
       start: startDate,
       passage: 'TODO',
       users: [USER1],
@@ -242,7 +246,7 @@ describe('WsHandler', () => {
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
     wsHandler.start_race(USER1, RACEINFO1);
 
-    const message = { type: 'error', message: 'You do not have permision to start race' };
+    const message = { type: 'error', message: 'You do not have permission to start race' };
 
     await expect(mockServer).toReceiveMessage(JSON.stringify(message));
   });
@@ -280,6 +284,7 @@ describe('WsHandler', () => {
         roomId: ROOMID,
         hasStarted: true,
         isPublic: false,
+        isSolo: false,
         start: startDate,
         passage: 'TODO',
         users: [USER2],
@@ -320,6 +325,7 @@ describe('WsHandler', () => {
       roomId: ROOMID,
       hasStarted: false,
       isPublic: true,
+      isSolo: false,
       start: startDate,
       passage: 'TODO',
       users: [],
@@ -342,7 +348,7 @@ describe('WsHandler', () => {
     mockGetPassage.mockResolvedValue(EXAMPLE_PASSAGE);
 
     const wsHandler = new WsHandler(1, undefined, undefined, 0);
-    const roomId = wsHandler.create_room(true);
+    const roomId = wsHandler.create_room(true, false);
 
     /* eslint no-promise-executor-return: "error" */
     await new Promise((res) => {

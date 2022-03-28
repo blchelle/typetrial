@@ -1,4 +1,3 @@
-import { Passage } from '@prisma/client';
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
 import { getPassage } from '../models/passage';
@@ -20,18 +19,22 @@ class WsHandler {
 
   userInfo: Map<string, WebSocket>;
 
-  timeoutDuration: number;
+  publicTimeout: number;
+
+  soloTimeout: number;
 
   constructor(
     maxUsers: number,
     rooms?: Map<string, RaceData>,
     userInfo?: Map<string, WebSocket>,
-    timeoutDuration: number = 10000,
+    publicTimeout: number = 10000,
+    soloTimeout: number = 3000,
   ) {
     this.maxUsers = maxUsers;
     this.rooms = rooms || new Map<string, RaceData>();
     this.userInfo = userInfo || new Map<string, WebSocket>();
-    this.timeoutDuration = timeoutDuration;
+    this.publicTimeout = publicTimeout;
+    this.soloTimeout = soloTimeout;
   }
 
   broadcast_message(raceInfo: RaceData, message: Message) {
@@ -111,33 +114,34 @@ class WsHandler {
       }
     });
 
-    return foundRoomId === '' ? this.create_room(true) : foundRoomId;
+    return foundRoomId === '' ? this.create_room(true, false) : foundRoomId;
   }
 
-  create_room(isPublic: boolean, owner: string = '') {
+  create_room(isPublic: boolean, isSolo: boolean, owner: string = '') {
     let roomId = v4();
 
     while (this.rooms.has(roomId)) {
       roomId = v4();
     }
 
-    const start = new Date(getUtcTime().getTime() + this.timeoutDuration);
+    const timeout = isPublic ? this.publicTimeout : this.soloTimeout;
+    const start = new Date(getUtcTime().getTime() + timeout);
 
     const raceInfo: RaceData = {
-      roomId, hasStarted: false, isPublic, start, users: [], userInfo: {}, owner,
+      roomId, hasStarted: false, isPublic, isSolo, start, users: [], userInfo: {}, owner,
     };
 
     // This promise chain is required, since await in a websocket causes blocking for other users in other rooms
-    getPassage().then((passage:Passage) => {
+    getPassage().then((passage) => {
       raceInfo.passage = passage.text;
       raceInfo.passageId = passage.id;
       this.broadcast_race_info(raceInfo);
     });
 
-    if (isPublic) {
+    if (isPublic || isSolo) {
       setTimeout(() => {
         this.start_race('', raceInfo);
-      }, this.timeoutDuration);
+      }, isPublic ? this.publicTimeout : this.soloTimeout);
     }
 
     this.rooms.set(roomId, raceInfo);
@@ -146,12 +150,12 @@ class WsHandler {
   }
 
   start_race(owner: string, raceInfo: RaceData) {
-    if (owner === raceInfo.owner) {
+    if (owner === raceInfo.owner || raceInfo.isSolo) {
       raceInfo.hasStarted = true;
       this.broadcast_race_info(raceInfo);
     } else {
       const ws = this.userInfo.get(owner);
-      if (ws) { ws.send(JSON.stringify({ type: 'error', message: 'You do not have permision to start race' })); }
+      if (ws) { ws.send(JSON.stringify({ type: 'error', message: 'You do not have permission to start race' })); }
     }
   }
 

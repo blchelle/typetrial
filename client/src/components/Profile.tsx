@@ -36,11 +36,11 @@ const Profile: React.FC = () => {
   // Computes a moving average over the last 10 races
   const wpmResults = results.map(
     (_, i) => ({
-      wpm: Math.floor(
-        results
+      wpm: Math.round(
+        10 * results
           .slice(Math.max(0, i - 10), i + 1)
           .reduce((avg, { wpm }, j) => ((avg * j) + wpm) / (j + 1), 0),
-      ),
+      ) / 10,
       raceNumber: i + 1,
     }),
   );
@@ -76,7 +76,7 @@ const Profile: React.FC = () => {
         data={wpmResults}
       >
         <Line
-          type="basis"
+          type="natural"
           stroke={useMantineTheme().colors.blue[6]}
           dataKey="wpm"
           dot={false}

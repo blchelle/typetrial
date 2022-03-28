@@ -10,6 +10,7 @@ export interface RaceData {
     roomId: string,
     hasStarted: boolean,
     isPublic: boolean,
+    isSolo: boolean,
     start: Date,
     passage?: string,
     users: string [],
@@ -53,6 +54,7 @@ export interface ConnectPrivateMessage extends InMessage {
 export interface CreatePrivateMessage extends InMessage {
     type: 'create_private';
     public: boolean;
+    solo: boolean;
 }
 
 export interface StartMessage extends InMessage {

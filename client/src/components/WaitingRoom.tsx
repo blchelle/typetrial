@@ -13,16 +13,20 @@ import {
 import TypingZone from './TypingZone';
 import env from '../config/environment';
 
-interface WaitingRoomProps {
-  isPublic: boolean;
-  isCreator: boolean;
+interface RoomProps {
+  isPublic?: boolean;
+  isCreator?: boolean;
+  isSolo?: boolean;
 }
 
-const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
+const Room: React.FC<RoomProps> = (
+  { isPublic = false, isCreator = false, isSolo = false },
+) => {
   const [raceInfo, setRaceInfo] = useState<RaceData>({
     roomId: '',
     hasStarted: false,
     isPublic: false,
+    isSolo,
     start: new Date(),
     passage: '',
     users: [],
@@ -31,7 +35,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
   });
 
   const [websocket, setWebsocket] = useState<WebSocket>();
-  const [countDown, setCountDown] = useState(10);
+  const [countDown, setCountDown] = useState(isPublic ? 10 : 3);
   const [errorMessage, setErrorMessage] = useState('');
   const roomId = !isPublic && !isCreator ? useParams().roomId : '';
   const modals = useModals();
@@ -43,15 +47,16 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
         title: errorMessage,
         size: 400,
         onClose: () => handleError(),
-        children:
-  <div>
-    <Text>
-      Closing this will navigate you back to the home screen.
-    </Text>
-    <Button onClick={() => handleError()}>
-      Close
-    </Button>
-  </div>,
+        children: (
+          <>
+            <Text>
+              Closing this will navigate you back to the home screen.
+            </Text>
+            <Button onClick={() => handleError()}>
+              Close
+            </Button>
+          </>
+        ),
       },
     );
   };
@@ -85,6 +90,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
         const connectMessage = JSON.stringify({
           type: 'create_private',
           public: false,
+          solo: isSolo,
         });
         ws.send(connectMessage);
       } else {
@@ -110,7 +116,7 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
   }, [errorMessage]);
 
   useEffect(() => {
-    if (raceInfo.isPublic) {
+    if (raceInfo.isPublic || raceInfo.isSolo) {
       const intervalId = setInterval(() => {
         const now = new Date();
         const nowUtc = new Date(now.getTime()
@@ -143,15 +149,15 @@ const WaitingRoom: React.FC<WaitingRoomProps> = ({ isPublic, isCreator }) => {
         ? <TypingZone websocket={websocket} raceInfo={raceInfo} />
         : (
           <div>
-            {isPublic ? (`Race Starting in: ${countDown}`) : (raceInfo.roomId !== '' && `${env.baseClientUrl}/room/private/${raceInfo.roomId}`)}
+            {isPublic || isSolo ? (`Race Starting in: ${countDown}`) : (raceInfo.roomId && `${env.baseClientUrl}/room/private/${raceInfo.roomId}`)}
             <List>
               {raceInfo.users.map((user) => <ListItem key={user}>{user}</ListItem>)}
             </List>
-            {!raceInfo.isPublic && raceInfo.owner === useUser().username && <Button color="cyan" onClick={startRace}>Race your friends</Button>}
+            {!raceInfo.isPublic && !raceInfo.isSolo && raceInfo.owner === useUser().username && <Button color="cyan" onClick={startRace}>Race your friends</Button>}
           </div>
         )}
     </div>
   );
 };
 
-export default WaitingRoom;
+export default Room;
