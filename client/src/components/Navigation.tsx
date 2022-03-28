@@ -1,14 +1,15 @@
 import React from 'react';
 import {
-  Button, Group, Header, Title, Text, Badge,
+  Button, Group, Header, Text, Badge,
 } from '@mantine/core';
 import { Link } from 'react-router-dom';
 
 import { useModals } from '@mantine/modals';
 import { AuthModals, AuthType } from '@components/AuthForm';
-import { IoHome, IoSettings, IoStatsChart } from 'react-icons/io5';
+import { IoSettings, IoStatsChart } from 'react-icons/io5';
 import axios from 'axios';
 import useUser from '@hooks/useUser';
+import typeTrialLogo from '../assets/typeTrialLogoSmall.png';
 
 const Navigation: React.FC = () => {
   const modals = useModals();
@@ -32,7 +33,7 @@ const Navigation: React.FC = () => {
   return (
     <Header height={50}>
       <Group position="apart" spacing="xs">
-        <Title order={2}>TypeTrial</Title>
+        <Link to="/"><img src={typeTrialLogo} alt="Type Trial Logo" height={40} /></Link>
         { user.id ? (
           <Group spacing="sm">
             <Group spacing={8}>
@@ -49,7 +50,6 @@ const Navigation: React.FC = () => {
                   </Badge>
                 </Group>
               </Group>
-              <Link to="/"><Button size="md" color="blue" variant="light"><IoHome /></Button></Link>
               <Link to="/profile"><Button size="md" color="blue" variant="light"><IoStatsChart /></Button></Link>
               <Button size="md" color="gray" variant="light"><IoSettings /></Button>
             </Group>
