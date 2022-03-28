@@ -6,6 +6,7 @@ import APIError from '../errors/apiError';
 import FieldError from '../errors/fieldError';
 import { ForbiddenError } from '../errors/forbiddenError';
 import db from '../prismaClient';
+import { UserWithResults } from '../utils/types';
 
 interface SignupInput {
   email: string
@@ -188,11 +189,23 @@ export const sanitizeUserOutput = (user: User & { Results: { wpm: number, count:
 
 export const signupUser = async (inputUser: SignupInput) => db.user.create({ data: { ...inputUser } });
 
-export const getUserById = async (id: number) => db.user.findUnique({ where: { id } });
+export const getUserByField = async (field: 'id' | 'email' | 'username', value: number | string) => {
+  const user = await db.user.findUnique({
+    where: { [field]: value },
+    include: { Results: { select: { wpm: true }, orderBy: { Race: { createdAt: 'desc' } } } },
+  });
 
-export const getUserByEmail = async (email: string) => db.user.findUnique({ where: { email } });
+  if (!user) {
+    const error = new FieldError(field, value, 'is not associated with an account');
+    throw new APIError('invalid input', StatusCodes.NOT_FOUND, [error]);
+  }
 
-export const getUserByUsername = async (username: string) => db.user.findUnique({ where: { username } });
+  const recentResults = user.Results.slice(0, 10);
+  const wpm = recentResults.reduce((avg, res) => avg + res.wpm, 0) / (recentResults.length || 1);
+
+  const result: UserWithResults = { ...user, Results: { wpm, count: user.Results.length } };
+  return result;
+};
 
 export const createResetPasswordToken = async (user: User) => {
   const now = new Date();

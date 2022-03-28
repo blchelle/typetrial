@@ -3,7 +3,7 @@ import WebSocket from 'ws';
 import { getPassage } from '../models/passage';
 import { createRace } from '../models/race';
 import { createResult } from '../models/result';
-import { getUserByUsername } from '../models/user';
+import { getUserByField } from '../models/user';
 import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
 import { getUtcTime } from '../utils/helpers';
 import {
@@ -166,7 +166,7 @@ class WsHandler {
     if (raceInfo.passageId) {
       createRace(raceInfo.passageId).then((dbRace) => {
         Object.entries(raceInfo.userInfo).forEach(([username, user]) => {
-          getUserByUsername(username).then((dbUser) => {
+          getUserByField('username', username).then((dbUser) => {
             if (dbUser) {
               createResult(dbUser.id, dbRace.id, user.wpm, 1);
             }

@@ -1,9 +1,18 @@
-export interface User {
+import { User } from '@prisma/client';
+
+export interface WsUser {
     color: string;
     charsTyped: number;
     wpm: number;
     finishTime?: Date;
     finished: boolean;
+}
+
+export interface UserWithResults extends User {
+    Results: {
+        wpm: number
+        count: number
+    }
 }
 
 export interface RaceData {
@@ -15,7 +24,7 @@ export interface RaceData {
     passage?: string,
     passageId?: number,
     users: string [],
-    userInfo: {[key: string]: User; },
+    userInfo: {[key: string]: WsUser; },
     owner: string,
 }
 
