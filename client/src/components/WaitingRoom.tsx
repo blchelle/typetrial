@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import {
-  List, ListItem, Button, Text,
-} from '@mantine/core';
+import { Button, Text, Group } from '@mantine/core';
 import { useModals } from '@mantine/modals';
 import useUser from '@hooks/useUser';
-import { MILLISECONDS_PER_MINUTE } from '@utils/constants';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Message, RaceDataMessage, RaceData, StartMessage, ErrorMessage,
 } from '../utils/types';
 import TypingZone from './TypingZone';
 import env from '../config/environment';
+import Racer from './Racer';
+import Copy from './Copy';
+import Countdown from './Countdown';
 
 interface RoomProps {
   isPublic?: boolean;
@@ -34,13 +34,12 @@ const Room: React.FC<RoomProps> = (
   });
 
   const [websocket, setWebsocket] = useState<WebSocket>();
-  const [countDown, setCountDown] = useState(isPublic ? 10 : 3);
   const [errorMessage, setErrorMessage] = useState('');
   const roomId = !isPublic && !isCreator ? useParams().roomId : '';
 
   const modals = useModals();
   const navigate = useNavigate();
-  const { username } = useUser();
+  const { username: myUsername } = useUser();
 
   const openModal = () => {
     modals.openModal(
@@ -105,7 +104,7 @@ const Room: React.FC<RoomProps> = (
   };
 
   useEffect(() => {
-    createSocket(username);
+    createSocket(myUsername);
   }, []);
 
   useEffect(() => {
@@ -113,21 +112,6 @@ const Room: React.FC<RoomProps> = (
       openModal();
     }
   }, [errorMessage]);
-
-  useEffect(() => {
-    if (raceInfo.isPublic || raceInfo.isSolo) {
-      const intervalId = setInterval(() => {
-        const now = new Date();
-        const nowUtc = new Date(now.getTime()
-            + (now.getTimezoneOffset() * MILLISECONDS_PER_MINUTE));
-        const rem = Math.round((new Date(raceInfo.start).getTime() - nowUtc.getTime()) / 1000);
-        if (rem < 0) clearInterval(intervalId);
-        else {
-          setCountDown(rem);
-        }
-      }, 1000);
-    }
-  }, [raceInfo.start]);
 
   const startRace = () => {
     const startMessage: StartMessage = {
@@ -144,17 +128,33 @@ const Room: React.FC<RoomProps> = (
 
   return (
     <div>
-      {raceInfo.hasStarted
-        ? <TypingZone websocket={websocket} raceInfo={raceInfo} />
-        : (
-          <div>
-            {isPublic || isSolo ? (`Race Starting in: ${countDown}`) : (raceInfo.roomId && `${env.baseClientUrl}/room/private/${raceInfo.roomId}`)}
-            <List>
-              {raceInfo.users.map((user) => <ListItem key={user}>{user}</ListItem>)}
-            </List>
-            {!raceInfo.isPublic && !raceInfo.isSolo && raceInfo.owner === username && <Button color="cyan" onClick={startRace}>Race your friends</Button>}
-          </div>
+      <div>
+        { !isCreator && !isPublic && !raceInfo.hasStarted && (
+          <Text>Waiting for the host to start the race...</Text>
         )}
+        { isCreator && !isSolo && (
+          <>
+            <Text>Invite your friends with this link</Text>
+            <Copy text={`${env.baseClientUrl}/room/private/${raceInfo.roomId}`} withIcon />
+          </>
+        )}
+        { (isPublic || isSolo) && <Countdown secondsLeft={isPublic ? 10 : 3} /> }
+        <Group direction="column" align="stretch" mb="lg" mt="lg">
+          {Object.entries(raceInfo.userInfo).map(
+            ([username, { color, wpm, charsTyped }]) => (
+              <Racer
+                key={username}
+                name={username}
+                color={color}
+                wpm={wpm}
+                progress={charsTyped / (raceInfo.passage?.length ?? 1)}
+              />
+            ),
+          )}
+        </Group>
+        {!raceInfo.isPublic && !raceInfo.isSolo && raceInfo.owner === myUsername && !raceInfo.hasStarted && <Button color="cyan" onClick={startRace} mb="lg">Start the Race</Button>}
+      </div>
+      { raceInfo.passage && <TypingZone websocket={websocket} raceInfo={raceInfo} /> }
     </div>
   );
 };
