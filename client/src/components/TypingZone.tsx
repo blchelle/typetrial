@@ -9,6 +9,7 @@ import { RaceData, TypeMessage, User } from '@utils/types';
 import useUser from '@hooks/useUser';
 
 import '../styles/powerups.css';
+import { useFocusTrap } from '@mantine/hooks';
 import FinishModal from './FinishModal';
 
 interface TypingZoneProps {
@@ -19,6 +20,7 @@ interface TypingZoneProps {
 const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const { colors } = useMantineTheme();
   const { username } = useUser();
+  const focusTrapRef = useFocusTrap(raceInfo.hasStarted);
 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWordInput, setCurrentWordInput] = useState('');
@@ -88,6 +90,8 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   };
 
   const renderCursor = (charIndex: number, renderRaceInfo: RaceData): JSX.Element | null => {
+    if (!raceInfo.hasStarted) return null;
+
     const localUser = {
       ...renderRaceInfo.userInfo[username],
       charsTyped: currentCharIndex,
@@ -116,7 +120,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   };
 
   return (
-    <Container size="sm">
+    <Container size="sm" padding={0}>
       <FinishModal
         raceInfo={raceInfo}
         opened={currentWordIndex === blurb.length}
@@ -158,12 +162,11 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             styles={{ defaultVariant: { backgroundColor: error ? colors.red[5] : 'auto' } }}
             onChange={handleInputChange}
             value={currentWordInput}
-            disabled={currentWordIndex === blurb.length || powerups.includes('knockout')}
+            disabled={currentWordIndex === blurb.length || powerups.includes('knockout') || !raceInfo.hasStarted}
             mt="lg"
-            autoFocus
+            ref={focusTrapRef}
           />
           {currentWordIndex === blurb.length && <p>You Win!</p>}
-          <p>{`${raceInfo.userInfo[username].wpm} WPM`}</p>
         </div>
       </Paper>
       <Chips mt={8} value={powerups} onChange={setPowerups} multiple>
