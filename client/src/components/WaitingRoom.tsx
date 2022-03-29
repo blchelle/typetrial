@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { v4 as uuid } from 'uuid';
 import {
   List, ListItem, Button, Text,
 } from '@mantine/core';
@@ -38,8 +37,10 @@ const Room: React.FC<RoomProps> = (
   const [countDown, setCountDown] = useState(isPublic ? 10 : 3);
   const [errorMessage, setErrorMessage] = useState('');
   const roomId = !isPublic && !isCreator ? useParams().roomId : '';
+
   const modals = useModals();
   const navigate = useNavigate();
+  const { username } = useUser();
 
   const openModal = () => {
     modals.openModal(
@@ -104,9 +105,7 @@ const Room: React.FC<RoomProps> = (
   };
 
   useEffect(() => {
-    const user = useUser();
-    const name = user?.username ?? uuid();
-    createSocket(name);
+    createSocket(username);
   }, []);
 
   useEffect(() => {
@@ -153,7 +152,7 @@ const Room: React.FC<RoomProps> = (
             <List>
               {raceInfo.users.map((user) => <ListItem key={user}>{user}</ListItem>)}
             </List>
-            {!raceInfo.isPublic && !raceInfo.isSolo && raceInfo.owner === useUser().username && <Button color="cyan" onClick={startRace}>Race your friends</Button>}
+            {!raceInfo.isPublic && !raceInfo.isSolo && raceInfo.owner === username && <Button color="cyan" onClick={startRace}>Race your friends</Button>}
           </div>
         )}
     </div>
