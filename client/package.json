@@ -27,6 +27,7 @@
     "react-router": "^6.2.1",
     "react-router-dom": "^6.2.1",
     "recharts": "^2.1.9",
+    "unique-names-generator": "^4.7.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
