@@ -129,25 +129,25 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
           />
         </div>
         <div className="rounded-lg bg-gray-200 p-8">
-          <div className={powerups.includes('rumble') ? 'rumble' : ''}>
+          <div
+            className={powerups.includes('rumble') ? 'rumble' : ''}
+            style={{ userSelect: 'none' }}
+          >
             {passage.split('').map((letter, charIndex) => {
-              const charColor = (charIndex < currentCharIndex) ? colors.green[8] : colors.gray[9];
+              const color = (charIndex < currentCharIndex) ? colors.green[8] : colors.gray[9];
 
               const baseOpacity = powerups.includes('whiteout') ? 0.07 : 1;
               const opacity = (charIndex < currentCharIndex) ? 1 : baseOpacity;
 
               return (
-                <Text style={{
-                  display: 'inline', position: 'relative', color: charColor,
-                }}
-                >
+                <Text style={{ display: 'inline', position: 'relative', color }}>
                   {renderCursor(charIndex, raceInfo)}
                   <span style={{ opacity }}>{letter}</span>
                 </Text>
               );
             })}
           </div>
-          {
+          { /* An invisible copy of the text for when rumble is on, it maintains the box height */
             powerups.includes('rumble') && (
             <div style={{ opacity: 0 }}>
               <Text>{passage}</Text>
