@@ -77,8 +77,10 @@ class WsHandler {
 
     this.userInfo.set(user, ws);
 
+    const takenColors = Object.values(raceInfo.userInfo).map(({ color }) => color);
+    const availableColors = PLAYER_COLORS.filter((color) => !takenColors.includes(color));
     raceInfo.userInfo[user] = {
-      color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0, wpm: 0, finished: false,
+      color: availableColors[0], charsTyped: 0, wpm: 0, finished: false,
     };
     raceInfo.users.push(user);
 
