@@ -17,7 +17,8 @@ describe('WsHandler', () => {
   let userInfo: UserInfo;
   let mockSendError: any;
 
-  const startDate = new Date();
+  const countdownStart = new Date().getTime();
+  const raceStart = countdownStart + 1000;
   let mockConnectUserToPublicRoom: any;
   let mockConnectUserToRoom: any;
   let mockCreateRoom: any;
@@ -34,13 +35,13 @@ describe('WsHandler', () => {
     mockConnectUserToPublicRoom = jest
       .spyOn(WsHandler.prototype, 'connect_user_to_public_room')
       .mockImplementation(() => ({
-        owner: '', roomId: '', hasStarted: false, isPublic: true, isSolo: false, start: startDate, passage: '', users: [], userInfo: {},
+        owner: '', roomId: '', hasStarted: false, isPublic: true, isSolo: false, countdownStart, raceStart, passage: '', users: [], userInfo: {},
       }));
 
     mockConnectUserToRoom = jest
       .spyOn(WsHandler.prototype, 'connect_user_to_room')
       .mockImplementation(() => ({
-        owner: '', roomId: '', hasStarted: false, isPublic: true, isSolo: false, start: startDate, passage: '', users: [], userInfo: {},
+        owner: '', roomId: '', hasStarted: false, isPublic: true, isSolo: false, countdownStart, raceStart, passage: '', users: [], userInfo: {},
       }));
 
     mockCreateRoom = jest
@@ -58,7 +59,7 @@ describe('WsHandler', () => {
     userInfo = {
       user: USER1,
       raceInfo: {
-        owner: '', roomId: '', hasStarted: false, isPublic: true, isSolo: false, start: startDate, passage: '', users: [], userInfo: {},
+        owner: '', roomId: '', hasStarted: false, isPublic: true, isSolo: false, countdownStart, raceStart, passage: '', users: [], userInfo: {},
       },
     };
   });
