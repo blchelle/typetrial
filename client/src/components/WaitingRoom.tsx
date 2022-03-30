@@ -26,7 +26,6 @@ const Room: React.FC<RoomProps> = (
     hasStarted: false,
     isPublic: false,
     isSolo,
-    start: new Date(),
     passage: '',
     users: [],
     userInfo: {},
@@ -126,6 +125,18 @@ const Room: React.FC<RoomProps> = (
     modals.closeAll();
   };
 
+  const timeToStart = () => {
+    if (!raceInfo.countdownStart || !raceInfo.raceStart) return [null, null];
+
+    const { countdownStart, raceStart } = raceInfo;
+    return [
+      Math.ceil((raceStart - new Date().getTime()) / 1000),
+      Math.ceil((raceStart - countdownStart) / 1000),
+    ];
+  };
+
+  const [secondsToStart, timeout] = timeToStart();
+
   return (
     <div>
       <div>
@@ -138,7 +149,9 @@ const Room: React.FC<RoomProps> = (
             <Copy text={`${env.baseClientUrl}/room/private/${raceInfo.roomId}`} withIcon />
           </>
         )}
-        { (isPublic || isSolo) && <Countdown secondsLeft={isPublic ? 10 : 3} /> }
+        { (isPublic || isSolo) && secondsToStart !== null && timeout !== null && (
+          <Countdown maxSeconds={timeout} startSeconds={secondsToStart} />
+        ) }
         <Group direction="column" align="stretch" mb="lg" mt="lg">
           {Object.entries(raceInfo.userInfo).map(
             ([username, { color, wpm, charsTyped }]) => (

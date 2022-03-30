@@ -125,10 +125,11 @@ class WsHandler {
     }
 
     const timeout = isPublic ? this.publicTimeout : this.soloTimeout;
-    const start = new Date(getUtcTime().getTime() + timeout);
+    const countdownStart = Math.floor(new Date().getTime() / 1000) * 1000; // Multiple of 1 second
+    const raceStart = countdownStart + timeout;
 
     const raceInfo: RaceData = {
-      roomId, hasStarted: false, isPublic, isSolo, start, users: [], userInfo: {}, owner,
+      roomId, hasStarted: false, isPublic, isSolo, countdownStart, raceStart, users: [], userInfo: {}, owner,
     };
 
     // This promise chain is required, since await in a websocket causes blocking for other users in other rooms
@@ -179,7 +180,7 @@ class WsHandler {
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
     const endTime = new Date(getUtcTime());
-    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.start.getTime());
+    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart);
     raceInfo.userInfo[user].wpm = Math.floor(wpm);
 
     if (raceInfo.passage && charsTyped === raceInfo.passage.length) {

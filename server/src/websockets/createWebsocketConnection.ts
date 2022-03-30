@@ -85,6 +85,8 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
   return userInfo;
 };
 export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler, isTest: boolean = false) => {
+  const now = new Date().getTime();
+
   let userInfo: UserInfo = {
     user,
     raceInfo: {
@@ -92,7 +94,8 @@ export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler,
       hasStarted: false,
       isPublic: false,
       isSolo: false,
-      start: new Date(),
+      countdownStart: now,
+      raceStart: now + 10000,
       passage: '',
       users: [],
       userInfo: {},

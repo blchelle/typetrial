@@ -30,7 +30,8 @@ describe('WsHandler', () => {
   let RACEINFOPRIVATE: RaceData;
   let EXAMPLE_PASSAGE: Passage;
 
-  const startDate = new Date();
+  const countdownStart = new Date().getTime();
+  const raceStart = countdownStart + 1000;
 
   beforeEach(async () => {
     mockServer = new WS(fakeURL);
@@ -53,7 +54,8 @@ describe('WsHandler', () => {
       hasStarted: false,
       isPublic: true,
       isSolo: false,
-      start: startDate,
+      countdownStart,
+      raceStart,
       passage: 'TODO',
       users: [USER1],
       userInfo: {
@@ -68,7 +70,8 @@ describe('WsHandler', () => {
       hasStarted: false,
       isPublic: true,
       isSolo: false,
-      start: startDate,
+      countdownStart,
+      raceStart,
       passage: 'TODO',
       users: [USER1, USER2],
       userInfo: {
@@ -86,7 +89,8 @@ describe('WsHandler', () => {
       hasStarted: false,
       isPublic: false,
       isSolo: false,
-      start: startDate,
+      countdownStart,
+      raceStart,
       passage: 'TODO',
       users: [USER1, USER2],
       userInfo: {
@@ -205,7 +209,7 @@ describe('WsHandler', () => {
   //   wsHandler.type_char(1, USER1, RACEINFO1);
 
   //   const updatedRaceInfo = {
-  //     owner: '', roomId: ROOMID, hasStarted: false, isPublic: true, start: startDate, passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 1 } },
+  //     owner: '', roomId: ROOMID, hasStarted: false, isPublic: true, raceStart: startDate, passage: 'TODO', users: [USER1], userInfo: { [USER1]: { color: PLAYER_COLORS[0], charsTyped: 1 } },
   //   };
   //   const message: RaceDataMessage = { type: 'raceData', raceInfo: updatedRaceInfo };
 
@@ -225,7 +229,8 @@ describe('WsHandler', () => {
       hasStarted: true,
       isPublic: true,
       isSolo: false,
-      start: startDate,
+      countdownStart,
+      raceStart,
       passage: 'TODO',
       users: [USER1],
       userInfo: {
@@ -285,7 +290,8 @@ describe('WsHandler', () => {
         hasStarted: true,
         isPublic: false,
         isSolo: false,
-        start: startDate,
+        countdownStart,
+        raceStart,
         passage: 'TODO',
         users: [USER2],
         userInfo: {
@@ -326,7 +332,8 @@ describe('WsHandler', () => {
       hasStarted: false,
       isPublic: true,
       isSolo: false,
-      start: startDate,
+      countdownStart,
+      raceStart,
       passage: 'TODO',
       users: [],
       userInfo: {
