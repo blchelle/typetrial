@@ -201,7 +201,7 @@ export const getUserByField = async (field: 'id' | 'email' | 'username', value: 
   }
 
   const recentResults = user.Results.slice(0, 10);
-  const wpm = recentResults.reduce((avg, res) => avg + res.wpm, 0) / (recentResults.length || 1);
+  const wpm = Math.round(recentResults.reduce((avg, res) => avg + res.wpm, 0) / (recentResults.length || 1));
 
   const result: UserWithResults = { ...user, Results: { wpm, count: user.Results.length } };
   return result;
