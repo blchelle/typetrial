@@ -3,6 +3,7 @@ import { Button, Text, Group } from '@mantine/core';
 import { useModals } from '@mantine/modals';
 import useUser from '@hooks/useUser';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getUtcTime } from '@utils/helpers';
 import {
   Message, RaceDataMessage, RaceData, StartMessage, ErrorMessage,
 } from '../utils/types';
@@ -130,7 +131,7 @@ const Room: React.FC<RoomProps> = (
 
     const { countdownStart, raceStart } = raceInfo;
     return [
-      Math.ceil((raceStart - new Date().getTime()) / 1000),
+      Math.ceil((raceStart - getUtcTime().getTime()) / 1000),
       Math.ceil((raceStart - countdownStart) / 1000),
     ];
   };

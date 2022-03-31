@@ -125,7 +125,7 @@ class WsHandler {
     }
 
     const timeout = isPublic ? this.publicTimeout : this.soloTimeout;
-    const countdownStart = Math.floor(new Date().getTime() / 1000) * 1000; // Multiple of 1 second
+    const countdownStart = Math.floor(getUtcTime().getTime() / 1000) * 1000; // Multiple of 1 second
     const raceStart = countdownStart + timeout;
 
     const raceInfo: RaceData = {
@@ -179,7 +179,7 @@ class WsHandler {
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
-    const endTime = new Date(getUtcTime());
+    const endTime = getUtcTime();
     const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart);
     raceInfo.userInfo[user].wpm = Math.floor(wpm);
 
