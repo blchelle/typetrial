@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { RaceData } from '@utils/types';
 import useUser from '@hooks/useUser';
 import { useNavigate } from 'react-router';
+import { finishSortFunction } from '@utils/helpers';
 
 interface FinishModalProps {
     raceInfo: RaceData,
@@ -16,23 +17,12 @@ const FinishModal: React.FC<FinishModalProps> = ({ raceInfo, opened }) => {
   const [rows, setRows] = useState<JSX.Element[]>([]);
 
   useEffect(() => {
-    const racers = Object.entries(raceInfo.userInfo)
-
-      .sort(([_, user], [_2, user2]) => {
-        const finishtime1 = (user.finished && user.finishTime)
-          ? (new Date(user.finishTime).getTime() || Infinity) : Infinity;
-        const finishtime2 = (user2.finished && user2.finishTime)
-          ? (new Date(user2.finishTime).getTime() || Infinity) : Infinity;
-        if (finishtime2 === finishtime1) {
-          return user2.charsTyped - user.charsTyped;
-        }
-        return (finishtime1 - finishtime2);
-      });
+    const racers = Object.entries(raceInfo.userInfo).sort(finishSortFunction);
 
     setRows(racers.map(([racerUsername, user], i) => {
       const rank = user.finished ? i + 1 : '?';
       return (
-        // eslint-disable-next-line react/no-array-index-key
+      // eslint-disable-next-line react/no-array-index-key
         <tr key={racerUsername} style={{ background: username === racerUsername ? 'goldenrod' : undefined }}>
           <td>{rank}</td>
           <td>{racerUsername}</td>
