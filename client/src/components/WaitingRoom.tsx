@@ -103,6 +103,7 @@ const Room: React.FC<RoomProps> = (
   };
 
   useEffect(() => {
+    websocket?.close();
     createSocket(myUsername);
   }, []);
 

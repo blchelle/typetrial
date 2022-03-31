@@ -180,6 +180,9 @@ class WsHandler {
         });
       });
     }
+    raceInfo.users.forEach(user => {
+      this.disconnect_user_from_room(user, raceInfo);
+    })
   }
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
