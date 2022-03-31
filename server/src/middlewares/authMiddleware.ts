@@ -58,7 +58,7 @@ export const protectRoute = (minRole: Role) => async (req: Request, _: Response,
     const user = await getUserByField('id', token.id);
     if (!user) return next(new JsonWebTokenError('user in token does not exist'));
 
-    if (user.passwordChangedAt && user.passwordChangedAt.getTime() > token.iat) {
+    if (user.passwordChangedAt && user.passwordChangedAt.getTime() > token.iat * 1000) {
       return next(new JsonWebTokenError('token expired'));
     }
 
