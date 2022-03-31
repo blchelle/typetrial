@@ -1,9 +1,12 @@
+export type Powerup = ('rumble'|'whiteout'|'doubletap'|'knockout'| null);
+
 export interface User {
     color: string;
     charsTyped: number;
     wpm: number;
     finishTime?: Date;
     finished: boolean;
+    inventory: Powerup;
 }
 
 export interface RaceData {
@@ -39,6 +42,11 @@ export interface RaceDataMessage extends OutMessage {
 export interface RaceUpdateMessage extends OutMessage {
     type: 'update';
     update: any;
+}
+
+export interface UsePowerupMessage extends InMessage {
+    type: 'powerup';
+    powerup: string;
 }
 
 export interface ConnectPublicMessage extends InMessage {

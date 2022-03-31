@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import {
-  Chip,
-  Chips,
-  Container,
+  Badge,
+  Chip, Chips, Container,
   Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
-import { RaceData, TypeMessage, User } from '@utils/types';
+import {
+  RaceData, TypeMessage, UsePowerupMessage, User,
+} from '@utils/types';
 import useUser from '@hooks/useUser';
 
 import '../styles/powerups.css';
@@ -25,7 +26,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWordInput, setCurrentWordInput] = useState('');
   const [currentCharIndex, setCurrentCharIndex] = useState<number>(0);
-  const [error, setError] = useState(false);
+  const [typingState, setTypingState] = useState<'Correct'|'Error'|'Powerup'>('Correct');
 
   const [powerups, setPowerups] = useState<string[]>([]);
 
@@ -46,6 +47,8 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
 
     const { value } = event.target;
 
+    const { inventory } = raceInfo.userInfo[username];
+
     const targetWord = blurb[currentWordIndex];
     const typedChars = [...blurb.slice(0, currentWordIndex), ''].join(' ').length + lastMatchingCharIndex(event.target.value, `${targetWord} `);
     setCurrentCharIndex(typedChars);
@@ -54,7 +57,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       value === `${targetWord} `
       || (value === targetWord && currentWordIndex === blurb.length - 1)
     ) {
-      setError(false);
+      setTypingState('Correct');
       setCurrentWordIndex(currentWordIndex + 1);
       setCurrentWordInput('');
 
@@ -63,13 +66,38 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       }
 
       sendTypingUpdate(typedChars);
-    } else if (value !== targetWord.substring(0, value.length)) {
-      setError(true);
-      setCurrentWordInput(event.target.value);
-    } else {
-      setError(false);
+    } else if (inventory && (value === `#${inventory} `)) {
+      setTypingState('Correct');
+      setCurrentWordInput('');
+    } else if (value === targetWord.substring(0, value.length)) {
+      setTypingState('Correct');
       setCurrentWordInput(event.target.value);
       sendTypingUpdate(typedChars);
+    } else if (inventory && (value === `#${inventory}`?.substring(0, value.length))) {
+      setTypingState('Powerup');
+      setCurrentWordInput(event.target.value);
+
+      const powerupMessage: UsePowerupMessage = {
+        type: 'powerup',
+        powerup: inventory,
+      };
+      websocket?.send(JSON.stringify(powerupMessage));
+    } else {
+      setTypingState('Error');
+      setCurrentWordInput(event.target.value);
+    }
+  };
+
+  const getBackgroundColor = () => {
+    switch (typingState) {
+      case ('Error'):
+        return colors.red[5];
+      case ('Powerup'):
+        return colors.pink[5];
+      case ('Correct'):
+        return 'auto';
+      default:
+        return 'auto';
     }
   };
 
@@ -159,7 +187,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             )
           }
           <TextInput
-            styles={{ defaultVariant: { backgroundColor: error ? colors.red[5] : 'auto' } }}
+            styles={{ defaultVariant: { backgroundColor: getBackgroundColor() } }}
             onChange={handleInputChange}
             value={currentWordInput}
             disabled={currentWordIndex === blurb.length || powerups.includes('knockout') || !raceInfo.hasStarted}
@@ -168,8 +196,11 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
           />
           {currentWordIndex === blurb.length && <p>You Win!</p>}
         </div>
+        <div>
+          <Badge color="pink" size="lg" variant="filled" style={{ marginTop: '15px', visibility: raceInfo.userInfo[username].inventory ? 'visible' : 'hidden' }}>{raceInfo.userInfo[username].inventory}</Badge>
+        </div>
       </Paper>
-      <Chips mt={8} value={powerups} onChange={setPowerups} multiple>
+      <Chips mt={8} value={powerups} onChange={setPowerups} multiple color="pink" variant="filled">
         <Chip value="rumble">Rumble</Chip>
         <Chip value="whiteout">Whiteout</Chip>
         <Chip value="doubletap">Doubletap</Chip>

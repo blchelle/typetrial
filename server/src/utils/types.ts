@@ -1,32 +1,43 @@
 import { User } from '@prisma/client';
 
+export type Powerup = ('rumble'|'whiteout'|'doubletap'|'knockout'| null);
+
+export interface Effect {
+    powerupType: Powerup;
+    user: string;
+    endTime: number;
+    target?: string|null;
+}
+
 export interface WsUser {
     color: string;
     charsTyped: number;
     wpm: number;
     finishTime?: Date;
     finished: boolean;
+    inventory: Powerup;
 }
 
 export interface UserWithResults extends User {
     Results: {
-        wpm: number
-        count: number
+        wpm: number;
+        count: number;
     }
 }
 
 export interface RaceData {
-    roomId: string,
-    hasStarted: boolean,
-    isPublic: boolean,
-    isSolo: boolean,
-    countdownStart: number,
-    raceStart: number,
-    passage?: string,
-    passageId?: number,
-    users: string [],
-    userInfo: {[key: string]: WsUser; },
-    owner: string,
+    roomId: string;
+    hasStarted: boolean;
+    isPublic: boolean;
+    isSolo: boolean;
+    countdownStart: number;
+    raceStart: number;
+    passage?: string;
+    passageId?: number;
+    users: string [];
+    userInfo: {[key: string]: WsUser; };
+    activeEffects: Effect[];
+    owner: string;
 }
 
 export interface UserInfo {
@@ -54,6 +65,11 @@ export interface RaceDataMessage extends OutMessage {
 export interface RaceUpdateMessage extends OutMessage {
     type: 'update';
     update: any;
+}
+
+export interface UsePowerupMessage extends InMessage {
+    type: 'powerup';
+    powerup: Powerup;
 }
 
 export interface ConnectPublicMessage extends InMessage {

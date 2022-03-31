@@ -7,7 +7,7 @@ import { getUserByField } from '../models/user';
 import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
 import { getUtcTime } from '../utils/helpers';
 import {
-  RaceData, Message, RaceDataMessage, ErrorMessage,
+  RaceData, Message, RaceDataMessage, ErrorMessage, Powerup, Effect,
 } from '../utils/types';
 
 export const PLAYER_COLORS = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
@@ -78,7 +78,7 @@ class WsHandler {
     this.userInfo.set(user, ws);
 
     raceInfo.userInfo[user] = {
-      color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0, wpm: 0, finished: false,
+      color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0, wpm: 0, finished: false, inventory: null,
     };
     raceInfo.users.push(user);
 
@@ -129,7 +129,16 @@ class WsHandler {
     const raceStart = countdownStart + timeout;
 
     const raceInfo: RaceData = {
-      roomId, hasStarted: false, isPublic, isSolo, countdownStart, raceStart, users: [], userInfo: {}, owner,
+      roomId,
+      hasStarted: false,
+      isPublic,
+      isSolo,
+      countdownStart,
+      raceStart,
+      users: [],
+      userInfo: {},
+      owner,
+      activeEffects: [],
     };
 
     // This promise chain is required, since await in a websocket causes blocking for other users in other rooms
@@ -183,6 +192,21 @@ class WsHandler {
     const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart);
     raceInfo.userInfo[user].wpm = Math.floor(wpm);
 
+    if (raceInfo.userInfo[user].inventory === null && Math.random() < 0.25) {
+      let powerup:Powerup;
+      const powerupRand = Math.random();
+      if (powerupRand < 0.05) {
+        powerup = 'knockout';
+      } else if (powerupRand < 0.1) {
+        powerup = 'doubletap';
+      } else if (powerupRand < 0.55) {
+        powerup = 'rumble';
+      } else {
+        powerup = 'whiteout';
+      }
+      raceInfo.userInfo[user].inventory = powerup;
+    }
+
     if (raceInfo.passage && charsTyped === raceInfo.passage.length) {
       raceInfo.userInfo[user].finished = true;
       raceInfo.userInfo[user].finishTime = endTime;
@@ -193,6 +217,26 @@ class WsHandler {
     }
 
     this.broadcast_race_info(raceInfo);
+  }
+
+  use_powerup(powerupType: Powerup, user: string, raceInfo: RaceData) {
+    const newEffect: Effect = { powerupType, user, endTime: Date.now() };
+    if (powerupType === 'knockout') {
+      // Target the person in first place!
+      const [target] = Object.entries(raceInfo.userInfo)
+        .map<[string, number]>(([username, u]) => [username, u.charsTyped])
+        .reduce<[string|null, number]>(([prevusername, prevcharsTyped], [username, charsTyped]) => {
+          if (prevcharsTyped < charsTyped) {
+            return [username, charsTyped];
+          }
+          return [prevusername, prevcharsTyped];
+        }, [null, 0]);
+      newEffect.target = target;
+    }
+    raceInfo.activeEffects.push(newEffect);
+    raceInfo.userInfo[user].inventory = null;
+    this.broadcast_race_info(raceInfo);
+    return null;
   }
 }
 
