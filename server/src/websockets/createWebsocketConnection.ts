@@ -9,6 +9,7 @@ import {
 
 export const sendError = (ws: WebSocket, message: string) => {
   ws.send(JSON.stringify({ type: 'error', message }));
+  ws.close();
 };
 
 export const safeCast = <T extends InMessage> (message: InMessage) => {
