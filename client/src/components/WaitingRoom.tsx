@@ -30,6 +30,7 @@ const Room: React.FC<RoomProps> = (
     passage: '',
     users: [],
     userInfo: {},
+    activeEffects: [],
     owner: '',
   });
 

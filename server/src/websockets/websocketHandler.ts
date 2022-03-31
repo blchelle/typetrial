@@ -220,7 +220,7 @@ class WsHandler {
   }
 
   use_powerup(powerupType: Powerup, user: string, raceInfo: RaceData) {
-    const newEffect: Effect = { powerupType, user, endTime: Date.now() };
+    const newEffect: Effect = { powerupType, user, endTime: Date.now() + 3000};
     if (powerupType === 'knockout') {
       // Target the person in first place!
       const [target] = Object.entries(raceInfo.userInfo)

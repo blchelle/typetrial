@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Badge,
   Chip, Chips, Container,
@@ -8,8 +8,6 @@ import {
   RaceData, TypeMessage, UsePowerupMessage, User,
 } from '@utils/types';
 import useUser from '@hooks/useUser';
-
-import '../styles/powerups.css';
 import { useFocusTrap } from '@mantine/hooks';
 import FinishModal from './FinishModal';
 
@@ -27,14 +25,14 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const [currentWordInput, setCurrentWordInput] = useState('');
   const [currentCharIndex, setCurrentCharIndex] = useState<number>(0);
   const [typingState, setTypingState] = useState<'Correct'|'Error'|'Powerup'>('Correct');
-
-  const [powerups, setPowerups] = useState<string[]>([]);
+  const [effectIndex, setEffectIndex] = useState(0);
+  const [effects, setEffects] = useState<string[]>([]);
 
   let passage;
   if (!raceInfo.passage) {
     console.error('Passage could not be loaded');
     passage = 'waiting for passage...';
-  } else if (powerups.includes('doubletap')) {
+  } else if (effects.includes('doubletap')) {
     passage = raceInfo.passage.split(' ').map((word, i) => (i === currentWordIndex ? word + word : word)).join(' ');
   } else {
     passage = raceInfo.passage;
@@ -42,8 +40,29 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
 
   const blurb = passage.split(' ');
 
+  useEffect(() => {
+    if (raceInfo.activeEffects.length === 0 || !raceInfo.activeEffects[effectIndex])
+      return;
+    const powerupType = raceInfo.activeEffects[effectIndex].powerupType
+    const powerIndexClosure = effectIndex
+    const outerLocalEffects = effects;
+    outerLocalEffects.push(powerupType)
+    setEffects(outerLocalEffects);
+    setEffectIndex(effectIndex + 1);
+    console.log(raceInfo.activeEffects[powerIndexClosure].endTime - Date.now());
+    setTimeout(() => {
+      const index = effects.indexOf(powerupType);
+      if (index > -1) {
+        const localEffects = [...effects];
+        localEffects.splice(index, 1);
+        setEffects(localEffects);
+      }
+    },raceInfo.activeEffects[powerIndexClosure].endTime - Date.now());
+
+  }, [raceInfo.activeEffects])
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (powerups.includes('knockout')) return;
+    if (effects.includes('knockout')) return;
 
     const { value } = event.target;
 
@@ -61,7 +80,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       setCurrentWordIndex(currentWordIndex + 1);
       setCurrentWordInput('');
 
-      if (powerups.includes('doubletap')) {
+      if (effects.includes('doubletap')) {
         setCurrentCharIndex(currentCharIndex - Math.ceil(targetWord.length / 2) + 1);
       }
 
@@ -69,6 +88,11 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
     } else if (inventory && (value === `#${inventory} `)) {
       setTypingState('Correct');
       setCurrentWordInput('');
+      const powerupMessage: UsePowerupMessage = {
+        type: 'powerup',
+        powerup: inventory,
+      };
+      websocket?.send(JSON.stringify(powerupMessage));
     } else if (value === targetWord.substring(0, value.length)) {
       setTypingState('Correct');
       setCurrentWordInput(event.target.value);
@@ -76,12 +100,6 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
     } else if (inventory && (value === `#${inventory}`?.substring(0, value.length))) {
       setTypingState('Powerup');
       setCurrentWordInput(event.target.value);
-
-      const powerupMessage: UsePowerupMessage = {
-        type: 'powerup',
-        powerup: inventory,
-      };
-      websocket?.send(JSON.stringify(powerupMessage));
     } else {
       setTypingState('Error');
       setCurrentWordInput(event.target.value);
@@ -162,13 +180,13 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
         </div>
         <div className="rounded-lg bg-gray-200 p-8">
           <div
-            className={powerups.includes('rumble') ? 'rumble' : ''}
+            className={effects.includes('rumble') ? 'rumble' : ''}
             style={{ userSelect: 'none' }}
           >
             {passage.split('').map((letter, charIndex) => {
               const color = (charIndex < currentCharIndex) ? colors.green[8] : colors.gray[9];
 
-              const baseOpacity = powerups.includes('whiteout') ? 0.07 : 1;
+              const baseOpacity = effects.includes('whiteout') ? 0.07 : 1;
               const opacity = (charIndex < currentCharIndex) ? 1 : baseOpacity;
 
               return (
@@ -180,7 +198,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             })}
           </div>
           { /* An invisible copy of the text for when rumble is on, it maintains the box height */
-            powerups.includes('rumble') && (
+            effects.includes('rumble') && (
             <div style={{ opacity: 0 }}>
               <Text>{passage}</Text>
             </div>
@@ -190,7 +208,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             styles={{ defaultVariant: { backgroundColor: getBackgroundColor() } }}
             onChange={handleInputChange}
             value={currentWordInput}
-            disabled={currentWordIndex === blurb.length || powerups.includes('knockout') || !raceInfo.hasStarted}
+            disabled={currentWordIndex === blurb.length || effects.includes('knockout') || !raceInfo.hasStarted}
             mt="lg"
             ref={focusTrapRef}
           />
@@ -200,7 +218,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
           <Badge color="pink" size="lg" variant="filled" style={{ marginTop: '15px', visibility: raceInfo.userInfo[username].inventory ? 'visible' : 'hidden' }}>{raceInfo.userInfo[username].inventory}</Badge>
         </div>
       </Paper>
-      <Chips mt={8} value={powerups} onChange={setPowerups} multiple color="pink" variant="filled">
+      <Chips mt={8} value={effects} onChange={setEffects} multiple color="pink" variant="filled">
         <Chip value="rumble">Rumble</Chip>
         <Chip value="whiteout">Whiteout</Chip>
         <Chip value="doubletap">Doubletap</Chip>
