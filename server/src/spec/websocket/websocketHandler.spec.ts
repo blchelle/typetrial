@@ -24,13 +24,14 @@ describe('WsHandler', () => {
 
   let USER1 = 'user1';
   let USER2 = 'user2';
-  let ROOMID = '1';
-  let RACEINFO1: RaceData;
-  let RACEINFOFULL1: RaceData;
-  let RACEINFOPRIVATE: RaceData;
+  let ROOM_ID = '1';
+  let RACE_INFO1: RaceData;
+  let RACE_INFO_FULL1: RaceData;
+  let RACE_INFO_PRIVATE: RaceData;
   let EXAMPLE_PASSAGE: Passage;
 
-  const countdownStart = new Date().getTime();
+  const joinedTime = Date.now();
+  const countdownStart = Date.now();
   const raceStart = countdownStart + 1000;
 
   beforeEach(async () => {
@@ -47,10 +48,10 @@ describe('WsHandler', () => {
 
     USER1 = 'user1';
     USER2 = 'user2';
-    ROOMID = '1';
-    RACEINFO1 = {
+    ROOM_ID = '1';
+    RACE_INFO1 = {
       owner: '',
-      roomId: ROOMID,
+      roomId: ROOM_ID,
       hasStarted: false,
       isPublic: true,
       isSolo: false,
@@ -60,13 +61,13 @@ describe('WsHandler', () => {
       users: [USER1],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
         },
       },
     };
-    RACEINFOFULL1 = {
+    RACE_INFO_FULL1 = {
       owner: '',
-      roomId: ROOMID,
+      roomId: ROOM_ID,
       hasStarted: false,
       isPublic: true,
       isSolo: false,
@@ -76,16 +77,16 @@ describe('WsHandler', () => {
       users: [USER1, USER2],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
         },
         [USER2]: {
-          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false,
+          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime,
         },
       },
     };
-    RACEINFOPRIVATE = {
+    RACE_INFO_PRIVATE = {
       owner: USER1,
-      roomId: ROOMID,
+      roomId: ROOM_ID,
       hasStarted: false,
       isPublic: false,
       isSolo: false,
@@ -95,10 +96,10 @@ describe('WsHandler', () => {
       users: [USER1, USER2],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
         },
         [USER2]: {
-          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false,
+          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime,
         },
       },
     };
@@ -125,7 +126,7 @@ describe('WsHandler', () => {
   });
 
   it('connectUserExistingRoom', async () => {
-    rooms.set(ROOMID, RACEINFO1);
+    rooms.set(ROOM_ID, RACE_INFO1);
     userInfo.set(USER1, client1);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
@@ -134,9 +135,8 @@ describe('WsHandler', () => {
     expect(wsHandler.userInfo.size).toEqual(2);
     expect(wsHandler.rooms.size).toEqual(1);
 
-    const message: RaceDataMessage = { type: 'raceData', raceInfo: RACEINFOFULL1 };
+    const message: RaceDataMessage = { type: 'raceData', raceInfo: RACE_INFO_FULL1 };
 
-    await expect(mockServer).toReceiveMessage(JSON.stringify(message));
     await expect(mockServer).toReceiveMessage(JSON.stringify(message));
 
     mockServer.close();
@@ -161,7 +161,7 @@ describe('WsHandler', () => {
   it('connectUserFullRoom', async () => {
     mockGetPassage.mockResolvedValue(EXAMPLE_PASSAGE);
 
-    rooms.set(ROOMID, RACEINFO1);
+    rooms.set(ROOM_ID, RACE_INFO1);
     userInfo.set(USER1, client1);
 
     const wsHandler = new WsHandler(1, rooms, userInfo, 0);
@@ -171,33 +171,33 @@ describe('WsHandler', () => {
     expect(wsHandler.userInfo.size).toEqual(2);
     expect(wsHandler.rooms.size).toEqual(2);
 
-    const message: RaceDataMessage = { type: 'raceData', raceInfo: RACEINFOFULL1 };
+    const message: RaceDataMessage = { type: 'raceData', raceInfo: RACE_INFO_FULL1 };
     await expect(mockServer).not.toReceiveMessage(JSON.stringify(message));
   });
 
   it('disconnectUserLastInRoom', async () => {
-    rooms.set(ROOMID, RACEINFO1);
+    rooms.set(ROOM_ID, RACE_INFO1);
     userInfo.set(USER1, client1);
 
     const wsHandler = new WsHandler(1, rooms, userInfo, 0);
-    wsHandler.disconnect_user_from_room(USER1, RACEINFO1);
+    wsHandler.disconnect_user_from_room(USER1, RACE_INFO1);
 
     expect(wsHandler.userInfo.size).toEqual(0);
     expect(wsHandler.rooms.size).toEqual(0);
   });
 
   it('disconnectUserRoom', async () => {
-    rooms.set(ROOMID, RACEINFOFULL1);
+    rooms.set(ROOM_ID, RACE_INFO_FULL1);
     userInfo.set(USER1, client1);
     userInfo.set(USER2, client2);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    wsHandler.disconnect_user_from_room(USER2, RACEINFOFULL1);
+    wsHandler.disconnect_user_from_room(USER2, RACE_INFO_FULL1);
 
     expect(wsHandler.userInfo.size).toEqual(1);
     expect(wsHandler.rooms.size).toEqual(1);
 
-    const message: RaceDataMessage = { type: 'raceData', raceInfo: RACEINFO1 };
+    const message: RaceDataMessage = { type: 'raceData', raceInfo: RACE_INFO1 };
     await expect(mockServer).toReceiveMessage(JSON.stringify(message));
   });
 
@@ -217,15 +217,15 @@ describe('WsHandler', () => {
   // });
 
   it('ownerStartRace', async () => {
-    rooms.set(ROOMID, RACEINFO1);
+    rooms.set(ROOM_ID, RACE_INFO1);
     userInfo.set(USER1, client1);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    wsHandler.start_race('', RACEINFO1);
+    wsHandler.start_race('', RACE_INFO1);
 
     const updatedRaceInfo = {
       owner: '',
-      roomId: ROOMID,
+      roomId: ROOM_ID,
       hasStarted: true,
       isPublic: true,
       isSolo: false,
@@ -235,7 +235,7 @@ describe('WsHandler', () => {
       users: [USER1],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
         },
       },
     };
@@ -245,11 +245,11 @@ describe('WsHandler', () => {
   });
 
   it('nonOwnerStartRace', async () => {
-    rooms.set(ROOMID, RACEINFO1);
+    rooms.set(ROOM_ID, RACE_INFO1);
     userInfo.set(USER1, client1);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    wsHandler.start_race(USER1, RACEINFO1);
+    wsHandler.start_race(USER1, RACE_INFO1);
 
     const message = { type: 'error', message: 'You do not have permission to start race' };
 
@@ -259,12 +259,12 @@ describe('WsHandler', () => {
   it('OwnerDisconnectFromRoomNotStart', async () => {
     mockGetPassage.mockResolvedValue(EXAMPLE_PASSAGE);
 
-    rooms.set(ROOMID, RACEINFOPRIVATE);
+    rooms.set(ROOM_ID, RACE_INFO_PRIVATE);
     userInfo.set(USER1, client1);
     userInfo.set(USER2, client2);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    wsHandler.disconnect_user_from_room(USER1, RACEINFOPRIVATE);
+    wsHandler.disconnect_user_from_room(USER1, RACE_INFO_PRIVATE);
 
     const message = { type: 'error', message: 'Room creator disconnected' };
 
@@ -274,19 +274,19 @@ describe('WsHandler', () => {
   it('OwnerDisconnectFromRoomStart', async () => {
     mockGetPassage.mockResolvedValue(EXAMPLE_PASSAGE);
 
-    RACEINFOPRIVATE.hasStarted = true;
-    rooms.set(ROOMID, RACEINFOPRIVATE);
+    RACE_INFO_PRIVATE.hasStarted = true;
+    rooms.set(ROOM_ID, RACE_INFO_PRIVATE);
     userInfo.set(USER1, client1);
     userInfo.set(USER2, client2);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    wsHandler.disconnect_user_from_room(USER1, RACEINFOPRIVATE);
+    wsHandler.disconnect_user_from_room(USER1, RACE_INFO_PRIVATE);
 
     const message: RaceDataMessage = {
       type: 'raceData',
       raceInfo: {
         owner: USER1,
-        roomId: ROOMID,
+        roomId: ROOM_ID,
         hasStarted: true,
         isPublic: false,
         isSolo: false,
@@ -296,7 +296,7 @@ describe('WsHandler', () => {
         users: [USER2],
         userInfo: {
           [USER2]: {
-            color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false,
+            color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime,
           },
         },
       },
@@ -306,7 +306,7 @@ describe('WsHandler', () => {
   });
 
   it('ExistingUserTriesToConnectPublic', async () => {
-    rooms.set(ROOMID, RACEINFO1);
+    rooms.set(ROOM_ID, RACE_INFO1);
     userInfo.set(USER1, client1);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
@@ -316,7 +316,7 @@ describe('WsHandler', () => {
   });
 
   it('ExistingUserTriesToRoom', async () => {
-    rooms.set(ROOMID, RACEINFO1);
+    rooms.set(ROOM_ID, RACE_INFO1);
     userInfo.set(USER1, client1);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
@@ -328,7 +328,7 @@ describe('WsHandler', () => {
   it('ExistingUserTriesToRoom', async () => {
     const RACEINFO = {
       owner: '',
-      roomId: ROOMID,
+      roomId: ROOM_ID,
       hasStarted: false,
       isPublic: true,
       isSolo: false,
@@ -338,15 +338,15 @@ describe('WsHandler', () => {
       users: [],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
         },
       },
     };
-    rooms.set(ROOMID, RACEINFO);
+    rooms.set(ROOM_ID, RACEINFO);
     userInfo.set(USER1, client1);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    const roomInfo = wsHandler.connect_user_to_room(USER1, client2, ROOMID);
+    const roomInfo = wsHandler.connect_user_to_room(USER1, client2, ROOM_ID);
     expect(wsHandler.rooms.size).toEqual(0);
     expect(roomInfo).toEqual(undefined);
   });

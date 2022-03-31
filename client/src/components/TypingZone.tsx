@@ -5,7 +5,7 @@ import {
   Container,
   Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
-import { RaceData, TypeMessage, User } from '@utils/types';
+import { RaceData, TypeMessage, WsUser } from '@utils/types';
 import useUser from '@hooks/useUser';
 
 import '../styles/powerups.css';
@@ -96,7 +96,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       ...renderRaceInfo.userInfo[username],
       charsTyped: currentCharIndex,
     };
-    const lUserInfo: {[key: string]: User; } = {
+    const lUserInfo: {[key: string]: WsUser; } = {
       ...renderRaceInfo.userInfo,
       [username]: localUser,
     };
