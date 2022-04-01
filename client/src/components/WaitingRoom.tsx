@@ -149,7 +149,7 @@ const Room: React.FC<RoomProps> = (
         { isCreator && !isSolo && (
           <>
             <Text>Invite your friends with this link</Text>
-            <Copy text={`${env.baseClientUrl}/room/private/${raceInfo.roomId}`} withIcon />
+            <Copy text={`${env.baseClientUrl}/room/private/${raceInfo.roomId}`} />
           </>
         )}
         { (isPublic || isSolo) && secondsToStart !== null && timeout !== null && (
