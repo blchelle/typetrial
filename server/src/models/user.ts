@@ -196,8 +196,7 @@ export const getUserByField = async (field: 'id' | 'email' | 'username', value: 
   });
 
   if (!user) {
-    const error = new FieldError(field, value, 'is not associated with an account');
-    throw new APIError('invalid input', StatusCodes.NOT_FOUND, [error]);
+    return null;
   }
 
   const recentResults = user.Results.slice(0, 10);

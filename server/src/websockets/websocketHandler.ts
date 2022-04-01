@@ -5,6 +5,7 @@ import { createRace } from '../models/race';
 import { createResult } from '../models/result';
 import { getUserByField } from '../models/user';
 import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
+import { finishSortFunction } from '../utils/helpers';
 import {
   RaceData, Message, RaceDataMessage, ErrorMessage,
 } from '../utils/types';
@@ -171,18 +172,20 @@ class WsHandler {
     // causes blocking for other users in other rooms
     if (raceInfo.passageId) {
       createRace(raceInfo.passageId).then((dbRace) => {
-        Object.entries(raceInfo.userInfo).forEach(([username, user]) => {
-          getUserByField('username', username).then((dbUser) => {
-            if (dbUser) {
-              createResult(dbUser.id, dbRace.id, user.wpm, 1);
-            }
+        Object.entries(raceInfo.userInfo)
+          .sort(finishSortFunction)
+          .forEach(([username, user], i) => {
+            getUserByField('username', username).then((dbUser) => {
+              if (dbUser) {
+                createResult(dbUser.id, dbRace.id, user.wpm, i + 1);
+              }
+            });
           });
-        });
       });
     }
-    raceInfo.users.forEach(user => {
+    raceInfo.users.forEach((user) => {
       this.disconnect_user_from_room(user, raceInfo);
-    })
+    });
   }
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
