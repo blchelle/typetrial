@@ -146,6 +146,9 @@ const Room: React.FC<RoomProps> = (
         { !isCreator && !isPublic && !raceInfo.hasStarted && (
           <Text>Waiting for the host to start the race...</Text>
         )}
+        { isPublic && !raceInfo.countdownStart && (
+          <Text>Waiting for other users to join the race...</Text>
+        )}
         { isCreator && !isSolo && (
           <>
             <Text>Invite your friends with this link</Text>
