@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Badge,
-  Chip, Chips, Container,
-  Paper, Text, TextInput, useMantineTheme,
+  Badge, Container, Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
 import {
   RaceData, TypeMessage, UsePowerupMessage, User,
 } from '@utils/types';
+import '../styles/powerups.css';
 import useUser from '@hooks/useUser';
 import { useFocusTrap } from '@mantine/hooks';
 import FinishModal from './FinishModal';
@@ -30,7 +29,6 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
 
   let passage;
   if (!raceInfo.passage) {
-    console.error('Passage could not be loaded');
     passage = 'waiting for passage...';
   } else if (effects.includes('doubletap')) {
     passage = raceInfo.passage.split(' ').map((word, i) => (i === currentWordIndex ? word + word : word)).join(' ');
@@ -41,25 +39,28 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const blurb = passage.split(' ');
 
   useEffect(() => {
-    if (raceInfo.activeEffects.length === 0 || !raceInfo.activeEffects[effectIndex])
+    if (raceInfo.activeEffects.length === 0 || !raceInfo.activeEffects[effectIndex]) {
       return;
-    const powerupType = raceInfo.activeEffects[effectIndex].powerupType
-    const powerIndexClosure = effectIndex
-    const outerLocalEffects = effects;
-    outerLocalEffects.push(powerupType)
-    setEffects(outerLocalEffects);
+    }
+    const { powerupType, user } = raceInfo.activeEffects[effectIndex];
+    const powerIndexClosure = effectIndex;
     setEffectIndex(effectIndex + 1);
-    console.log(raceInfo.activeEffects[powerIndexClosure].endTime - Date.now());
+    if (user === username) {
+      return;
+    }
+    setEffects((localEffects) => [...localEffects, powerupType]);
     setTimeout(() => {
-      const index = effects.indexOf(powerupType);
-      if (index > -1) {
-        const localEffects = [...effects];
-        localEffects.splice(index, 1);
-        setEffects(localEffects);
-      }
-    },raceInfo.activeEffects[powerIndexClosure].endTime - Date.now());
-
-  }, [raceInfo.activeEffects])
+      setEffects((localEffects) => {
+        const index = localEffects.indexOf(powerupType);
+        if (index > -1) {
+          const effectsCopy = [...localEffects];
+          effectsCopy.splice(index, 1);
+          return effectsCopy;
+        }
+        return localEffects;
+      });
+    }, raceInfo.activeEffects[powerIndexClosure].endTime - Date.now());
+  }, [raceInfo.activeEffects]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (effects.includes('knockout')) return;
@@ -218,12 +219,6 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
           <Badge color="pink" size="lg" variant="filled" style={{ marginTop: '15px', visibility: raceInfo.userInfo[username].inventory ? 'visible' : 'hidden' }}>{raceInfo.userInfo[username].inventory}</Badge>
         </div>
       </Paper>
-      <Chips mt={8} value={effects} onChange={setEffects} multiple color="pink" variant="filled">
-        <Chip value="rumble">Rumble</Chip>
-        <Chip value="whiteout">Whiteout</Chip>
-        <Chip value="doubletap">Doubletap</Chip>
-        <Chip value="knockout">Knockout</Chip>
-      </Chips>
     </Container>
   );
 };
