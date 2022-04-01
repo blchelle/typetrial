@@ -3,10 +3,11 @@ import {
   Badge, Container, Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
 import {
-  RaceData, TypeMessage, UsePowerupMessage, User,
+  RaceData, TypeMessage, WsUser, UsePowerupMessage,
 } from '@utils/types';
-import '../styles/powerups.css';
 import useUser from '@hooks/useUser';
+
+import '../styles/powerups.css';
 import { useFocusTrap } from '@mantine/hooks';
 import FinishModal from './FinishModal';
 
@@ -143,7 +144,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       ...renderRaceInfo.userInfo[username],
       charsTyped: currentCharIndex,
     };
-    const lUserInfo: {[key: string]: User; } = {
+    const lUserInfo: {[key: string]: WsUser; } = {
       ...renderRaceInfo.userInfo,
       [username]: localUser,
     };

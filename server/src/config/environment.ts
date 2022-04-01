@@ -28,7 +28,15 @@ interface Environment {
 }
 
 // Must load the .env file before initializing the environment
-dotenv.config({ path: `${__dirname}/../../.env.${process.env.NODE_ENV as NodeEnv}` });
+let path;
+const envName = process.env.NODE_ENV as NodeEnv;
+if (envName === 'production') {
+  path = `${__dirname}/../../../.env.production`;
+} else {
+  path = `${__dirname}/../../.env.${envName}`;
+}
+
+dotenv.config({ path });
 
 const environment: { [_ in NodeEnv]: Environment } = {
   development: {
@@ -91,4 +99,4 @@ const environment: { [_ in NodeEnv]: Environment } = {
   },
 };
 
-export default environment[process.env.NODE_ENV as NodeEnv];
+export default environment[envName];
