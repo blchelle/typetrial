@@ -32,7 +32,7 @@ describe('WsHandler', () => {
 
   const joinedTime = Date.now();
   const countdownStart = Date.now();
-  const raceStart = countdownStart + 1000;
+  const raceStart = countdownStart;
 
   beforeEach(async () => {
     mockServer = new WS(fakeURL);
@@ -152,7 +152,7 @@ describe('WsHandler', () => {
     await new Promise((res) => {
       setTimeout(() => {
         const raceInfo = wsHandler.rooms.get(roomId);
-        expect(raceInfo?.hasStarted).toEqual(true);
+        expect(raceInfo?.hasStarted).toEqual(false);
         res(0);
       }, 2);
     });

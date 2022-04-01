@@ -86,7 +86,21 @@ class WsHandler {
       finished: false,
       joinedTime: Date.now(),
     };
+
     raceInfo.users.push(user);
+
+    if (raceInfo.isPublic && raceInfo.users.length === 2) {
+      raceInfo.countdownStart = Date.now();
+      raceInfo.raceStart = raceInfo.countdownStart + this.publicTimeout;
+
+      raceInfo.users.forEach((username) => {
+        raceInfo.userInfo[username].joinedTime = raceInfo.countdownStart!;
+      });
+
+      setTimeout(() => {
+        this.start_race('', raceInfo);
+      }, this.publicTimeout);
+    }
 
     this.broadcast_race_info(raceInfo);
 
@@ -130,12 +144,23 @@ class WsHandler {
       roomId = v4();
     }
 
-    const timeout = isPublic ? this.publicTimeout : this.soloTimeout;
-    const countdownStart = Math.floor(Date.now() / 1000) * 1000; // Multiple of 1 second
-    const raceStart = countdownStart + timeout;
+    let raceStart;
+    let countdownStart;
+    if (isSolo) {
+      countdownStart = Math.floor(Date.now() / 1000) * 1000; // Multiple of 1 second
+      raceStart = countdownStart + this.soloTimeout;
+    }
 
     const raceInfo: RaceData = {
-      roomId, hasStarted: false, isPublic, isSolo, countdownStart, raceStart, users: [], userInfo: {}, owner,
+      roomId,
+      hasStarted: false,
+      isPublic,
+      isSolo,
+      countdownStart,
+      raceStart,
+      users: [],
+      userInfo: {},
+      owner,
     };
 
     // This promise chain is required, since await in a websocket causes blocking for other users in other rooms
@@ -145,10 +170,10 @@ class WsHandler {
       this.broadcast_race_info(raceInfo);
     });
 
-    if (isPublic || isSolo) {
+    if (isSolo) {
       setTimeout(() => {
         this.start_race('', raceInfo);
-      }, isPublic ? this.publicTimeout : this.soloTimeout);
+      }, this.soloTimeout);
     }
 
     this.rooms.set(roomId, raceInfo);
@@ -191,7 +216,7 @@ class WsHandler {
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
     const endTime = new Date();
-    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart);
+    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart!);
     raceInfo.userInfo[user].wpm = Math.floor(wpm);
 
     if (raceInfo.passage && charsTyped === raceInfo.passage.length) {
