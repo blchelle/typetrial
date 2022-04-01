@@ -173,8 +173,6 @@ class WsHandler {
               if (dbUser) {
                 createResult(dbUser.id, dbRace.id, user.wpm, i + 1);
               }
-            }).catch(() => {
-              // Ignore guests
             });
           });
       });

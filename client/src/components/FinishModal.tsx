@@ -22,7 +22,6 @@ const FinishModal: React.FC<FinishModalProps> = ({ raceInfo, opened }) => {
     setRows(racers.map(([racerUsername, user], i) => {
       const rank = user.finished ? i + 1 : '?';
       return (
-      // eslint-disable-next-line react/no-array-index-key
         <tr key={racerUsername} style={{ background: username === racerUsername ? 'goldenrod' : undefined }}>
           <td>{rank}</td>
           <td>{racerUsername}</td>
