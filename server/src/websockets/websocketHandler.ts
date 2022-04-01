@@ -5,7 +5,7 @@ import { createRace } from '../models/race';
 import { createResult } from '../models/result';
 import { getUserByField } from '../models/user';
 import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
-import { finishSortFunction, getUtcTime } from '../utils/helpers';
+import { finishSortFunction } from '../utils/helpers';
 import {
   RaceData, Message, RaceDataMessage, ErrorMessage,
 } from '../utils/types';
@@ -77,8 +77,14 @@ class WsHandler {
 
     this.userInfo.set(user, ws);
 
+    const takenColors = Object.values(raceInfo.userInfo).map(({ color }) => color);
+    const availableColors = PLAYER_COLORS.filter((color) => !takenColors.includes(color));
     raceInfo.userInfo[user] = {
-      color: PLAYER_COLORS[raceInfo.users.length], charsTyped: 0, wpm: 0, finished: false,
+      color: availableColors[0],
+      charsTyped: 0,
+      wpm: 0,
+      finished: false,
+      joinedTime: Date.now(),
     };
     raceInfo.users.push(user);
 
@@ -125,7 +131,7 @@ class WsHandler {
     }
 
     const timeout = isPublic ? this.publicTimeout : this.soloTimeout;
-    const countdownStart = Math.floor(getUtcTime().getTime() / 1000) * 1000; // Multiple of 1 second
+    const countdownStart = Math.floor(Date.now() / 1000) * 1000; // Multiple of 1 second
     const raceStart = countdownStart + timeout;
 
     const raceInfo: RaceData = {
@@ -177,11 +183,14 @@ class WsHandler {
           });
       });
     }
+    raceInfo.users.forEach((user) => {
+      this.disconnect_user_from_room(user, raceInfo);
+    });
   }
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
-    const endTime = getUtcTime();
+    const endTime = new Date();
     const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart);
     raceInfo.userInfo[user].wpm = Math.floor(wpm);
 

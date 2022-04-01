@@ -1,7 +1,8 @@
-export interface User {
+export interface WsUser {
     color: string;
     charsTyped: number;
     wpm: number;
+    joinedTime: number;
     finishTime?: Date;
     finished: boolean;
 }
@@ -15,7 +16,7 @@ export interface RaceData {
     raceStart?: number,
     passage?: string,
     users: string [],
-    userInfo: {[key: string]: User; },
+    userInfo: {[key: string]: WsUser; },
     owner: string,
 }
 

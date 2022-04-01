@@ -4,6 +4,7 @@ export interface WsUser {
     color: string;
     charsTyped: number;
     wpm: number;
+    joinedTime: number;
     finishTime?: Date;
     finished: boolean;
 }

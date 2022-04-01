@@ -3,7 +3,6 @@ import { Button, Text, Group } from '@mantine/core';
 import { useModals } from '@mantine/modals';
 import useUser from '@hooks/useUser';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getUtcTime } from '@utils/helpers';
 import {
   Message, RaceDataMessage, RaceData, StartMessage, ErrorMessage,
 } from '../utils/types';
@@ -104,6 +103,7 @@ const Room: React.FC<RoomProps> = (
   };
 
   useEffect(() => {
+    websocket?.close();
     createSocket(myUsername);
   }, []);
 
@@ -127,11 +127,13 @@ const Room: React.FC<RoomProps> = (
   };
 
   const timeToStart = () => {
-    if (!raceInfo.countdownStart || !raceInfo.raceStart) return [null, null];
+    const { countdownStart, raceStart, userInfo } = raceInfo;
+    const joinedTime = userInfo[myUsername]?.joinedTime;
 
-    const { countdownStart, raceStart } = raceInfo;
+    if (!countdownStart || !raceStart || !joinedTime) return [null, null];
+
     return [
-      Math.ceil((raceStart - getUtcTime().getTime()) / 1000),
+      Math.ceil((raceStart - joinedTime) / 1000),
       Math.ceil((raceStart - countdownStart) / 1000),
     ];
   };

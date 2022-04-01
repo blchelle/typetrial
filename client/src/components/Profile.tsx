@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Group, Table, useMantineTheme,
+  Group, Pagination, Table, useMantineTheme,
 } from '@mantine/core';
 import {
   LineChart, Line, CartesianGrid, YAxis, Label, XAxis, Tooltip,
@@ -24,10 +24,13 @@ interface Result {
   };
 }
 
+const PER_PAGE = 10;
+
 const Profile: React.FC = () => {
   const { fontFamily } = useMantineTheme();
 
   const [results, setResults] = useState<Result[]>([]);
+  const [activePage, setActivePage] = useState(1);
   const navigate = useNavigate();
 
   // TODO: Computationally heavy
@@ -38,7 +41,7 @@ const Profile: React.FC = () => {
     (_, i) => ({
       wpm: Math.round(
         10 * results
-          .slice(Math.max(0, i - 10), i + 1)
+          .slice(Math.max(0, i - 9), i + 1)
           .reduce((avg, { wpm }, j) => ((avg * j) + wpm) / (j + 1), 0),
       ) / 10,
       raceNumber: i + 1,
@@ -49,23 +52,26 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     axios.get(`/results/user/${user.id}`).then((res) => {
-      setResults(res.data.data);
+      const { data } = res.data;
+      setResults(data);
     });
-  }, []);
+  }, [activePage]);
 
-  const rows = results.map((result) => (
-    <tr key={result.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`race/${result.raceId}`)}>
-      <td>{(new Date(result.Race.createdAt)).toLocaleDateString()}</td>
-      <td style={{
-        overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: '400px',
-      }}
-      >
-        {result.Race.Passage.text}
-      </td>
-      <td>{result.rank}</td>
-      <td>{result.wpm}</td>
-    </tr>
-  ));
+  const rows = results
+    .slice((activePage - 1) * PER_PAGE, (activePage - 1) * PER_PAGE + PER_PAGE)
+    .map((result) => (
+      <tr key={result.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`race/${result.raceId}`)}>
+        <td>{(new Date(result.Race.createdAt)).toLocaleDateString()}</td>
+        <td style={{
+          overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: '400px',
+        }}
+        >
+          {result.Race.Passage.text}
+        </td>
+        <td>{result.rank}</td>
+        <td>{result.wpm}</td>
+      </tr>
+    ));
 
   return (
     <Group align="center" direction="column">
@@ -76,7 +82,7 @@ const Profile: React.FC = () => {
         data={wpmResults}
       >
         <Line
-          type="natural"
+          type="monotone"
           stroke={useMantineTheme().colors.blue[6]}
           dataKey="wpm"
           dot={false}
@@ -112,6 +118,11 @@ const Profile: React.FC = () => {
           {rows}
         </tbody>
       </Table>
+      <Pagination
+        page={activePage}
+        onChange={setActivePage}
+        total={Math.ceil(results.length / PER_PAGE)}
+      />
     </Group>
   );
 };

@@ -1,11 +1,4 @@
-import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
 import { WsUser } from './types';
-
-export const getUtcTime = () => {
-  const now = new Date();
-  const nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * MILLISECONDS_PER_MINUTE));
-  return nowUtc;
-};
 
 export const finishSortFunction = ([, user]: [string, WsUser], [, user2]:[string, WsUser]) => {
   const finishtime1 = (user.finished && user.finishTime)
