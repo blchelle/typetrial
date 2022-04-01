@@ -6,6 +6,7 @@ import { createResult } from '../models/result';
 import { getUserByField } from '../models/user';
 import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
 import { getUtcTime } from '../utils/helpers';
+import { writeLog } from '../utils/log';
 import {
   RaceData, Message, RaceDataMessage, ErrorMessage, Powerup, Effect,
 } from '../utils/types';
@@ -220,23 +221,38 @@ class WsHandler {
   }
 
   use_powerup(powerupType: Powerup, user: string, raceInfo: RaceData) {
-    const newEffect: Effect = { powerupType, user, endTime: Date.now() + 3000 };
-    if (powerupType === 'knockout') {
+    let newEffect: Effect;
+    switch (powerupType) {
+      case 'knockout': {
       // Target the person in first place!
-      const [target] = Object.entries(raceInfo.userInfo)
-        .map<[string, number]>(([username, u]) => [username, u.charsTyped])
-        .reduce<[string|null, number]>(([prevusername, prevcharsTyped], [username, charsTyped]) => {
-          if (prevcharsTyped < charsTyped) {
-            return [username, charsTyped];
-          }
-          return [prevusername, prevcharsTyped];
-        }, [null, 0]);
-      newEffect.target = target;
+        const [target] = Object.entries(raceInfo.userInfo)
+          .map<[string, number]>(([username, u]) => [username, u.charsTyped])
+          .reduce<[string|null, number]>(([prevusername, prevcharsTyped], [username, charsTyped]) => {
+            if (prevcharsTyped < charsTyped) {
+              return [username, charsTyped];
+            }
+            return [prevusername, prevcharsTyped];
+          }, [null, 0]);
+        newEffect = {
+          powerupType, user, endTime: Date.now() + 1500, target,
+        };
+        break; }
+      case 'doubletap': {
+        newEffect = { powerupType, user, endTime: Date.now() + 3000 };
+        break; }
+      case 'rumble': {
+        newEffect = { powerupType, user, endTime: Date.now() + 5000 };
+        break; }
+      case 'whiteout': {
+        newEffect = { powerupType, user, endTime: Date.now() + 5000 };
+        break; }
+      default:
+        writeLog({ event: 'Powerup type not recognized', user, powerupType }, 'error');
+        newEffect = { powerupType: 'whiteout', user, endTime: Date.now() + 5000 };
     }
     raceInfo.activeEffects.push(newEffect);
     raceInfo.userInfo[user].inventory = null;
     this.broadcast_race_info(raceInfo);
-    return null;
   }
 }
 
