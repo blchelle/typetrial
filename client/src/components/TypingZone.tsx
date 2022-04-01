@@ -39,30 +39,6 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
 
   const blurb = passage.split(' ');
 
-  useEffect(() => {
-    if (raceInfo.activeEffects.length === 0 || !raceInfo.activeEffects[effectIndex]) {
-      return;
-    }
-    const { powerupType, user } = raceInfo.activeEffects[effectIndex];
-    const powerIndexClosure = effectIndex;
-    setEffectIndex(effectIndex + 1);
-    if (user === username) {
-      return;
-    }
-    setEffects((localEffects) => [...localEffects, powerupType]);
-    setTimeout(() => {
-      setEffects((localEffects) => {
-        const index = localEffects.indexOf(powerupType);
-        if (index > -1) {
-          const effectsCopy = [...localEffects];
-          effectsCopy.splice(index, 1);
-          return effectsCopy;
-        }
-        return localEffects;
-      });
-    }, raceInfo.activeEffects[powerIndexClosure].endTime - Date.now());
-  }, [raceInfo.activeEffects]);
-
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (effects.includes('knockout')) return;
 
@@ -87,7 +63,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       }
 
       sendTypingUpdate(typedChars);
-    } else if (inventory && (value === `#${inventory} `)) {
+    } else if (inventory && (value.toLowerCase() === `#${inventory} `)) {
       setTypingState('Correct');
       setCurrentWordInput('');
       const powerupMessage: UsePowerupMessage = {
@@ -99,7 +75,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       setTypingState('Correct');
       setCurrentWordInput(event.target.value);
       sendTypingUpdate(typedChars);
-    } else if (inventory && (value === `#${inventory}`?.substring(0, value.length))) {
+    } else if (inventory && (value.toLowerCase() === `#${inventory}`?.substring(0, value.length))) {
       setTypingState('Powerup');
       setCurrentWordInput(event.target.value);
     } else {
@@ -107,6 +83,30 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       setCurrentWordInput(event.target.value);
     }
   };
+
+  useEffect(() => {
+    if (raceInfo.activeEffects.length === 0 || !raceInfo.activeEffects[effectIndex]) {
+      return;
+    }
+    const { powerupType, user, target } = raceInfo.activeEffects[effectIndex];
+    const powerIndexClosure = effectIndex;
+    setEffectIndex(effectIndex + 1);
+    if (user === username || (target && target !== username)) {
+      return;
+    }
+    setEffects((localEffects) => [...localEffects, powerupType]);
+    setTimeout(() => {
+      setEffects((localEffects) => {
+        const index = localEffects.indexOf(powerupType);
+        if (index > -1) {
+          const effectsCopy = [...localEffects];
+          effectsCopy.splice(index, 1);
+          return effectsCopy;
+        }
+        return localEffects;
+      });
+    }, raceInfo.activeEffects[powerIndexClosure].endTime - Date.now());
+  }, [raceInfo.activeEffects]);
 
   const getBackgroundColor = () => {
     switch (typingState) {
@@ -217,7 +217,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
           {currentWordIndex === blurb.length && <p>You Win!</p>}
         </div>
         <div>
-          <Badge color="pink" size="lg" variant="filled" style={{ marginTop: '15px', visibility: raceInfo.userInfo[username].inventory ? 'visible' : 'hidden' }}>{raceInfo.userInfo[username].inventory}</Badge>
+          <Badge color="pink" size="lg" variant="filled" style={{ marginTop: '15px', visibility: raceInfo.userInfo[username].inventory ? 'visible' : 'hidden' }}>{`#${raceInfo.userInfo[username].inventory}`}</Badge>
         </div>
       </Paper>
     </Container>
