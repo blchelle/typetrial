@@ -144,16 +144,19 @@ const Room: React.FC<RoomProps> = (
   return (
     <div>
       <div>
-        { !isCreator && !isPublic && !raceInfo.hasStarted && (
+        { !isCreator && !isPublic && !raceInfo.countdownStart && (
           <Text>Waiting for the host to start the race...</Text>
+        )}
+        { isPublic && !raceInfo.countdownStart && (
+          <Text>Waiting for other users to join the race...</Text>
         )}
         { isCreator && !isSolo && (
           <>
             <Text>Invite your friends with this link</Text>
-            <Copy text={`${env.baseClientUrl}/room/private/${raceInfo.roomId}`} withIcon />
+            <Copy text={`${env.baseClientUrl}/room/private/${raceInfo.roomId}`} />
           </>
         )}
-        { (isPublic || isSolo) && secondsToStart !== null && timeout !== null && (
+        { secondsToStart !== null && timeout !== null && (
           <Countdown maxSeconds={timeout} startSeconds={secondsToStart} />
         ) }
         <Group direction="column" align="stretch" mb="lg" mt="lg">
@@ -169,7 +172,7 @@ const Room: React.FC<RoomProps> = (
             ),
           )}
         </Group>
-        {!raceInfo.isPublic && !raceInfo.isSolo && raceInfo.owner === myUsername && !raceInfo.hasStarted && <Button color="cyan" onClick={startRace} mb="lg">Start the Race</Button>}
+        {!raceInfo.isPublic && !raceInfo.isSolo && raceInfo.owner === myUsername && !raceInfo.countdownStart && <Button color="cyan" onClick={startRace} mb="lg">Start the Race</Button>}
       </div>
       { raceInfo.passage && <TypingZone websocket={websocket} raceInfo={raceInfo} /> }
     </div>

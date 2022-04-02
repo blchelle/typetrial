@@ -6,6 +6,7 @@ import { createResult } from '../models/result';
 import { getUserByField } from '../models/user';
 import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
 import { writeLog } from '../utils/log';
+import { finishSortFunction } from '../utils/helpers';
 import {
   RaceData, Message, RaceDataMessage, ErrorMessage, Powerup, Effect,
 } from '../utils/types';
@@ -28,7 +29,7 @@ class WsHandler {
     rooms?: Map<string, RaceData>,
     userInfo?: Map<string, WebSocket>,
     publicTimeout: number = 10000,
-    soloTimeout: number = 3000,
+    soloTimeout: number = 5000,
   ) {
     this.maxUsers = maxUsers;
     this.rooms = rooms || new Map<string, RaceData>();
@@ -87,7 +88,21 @@ class WsHandler {
       joinedTime: Date.now(),
       inventory: null,
     };
+
     raceInfo.users.push(user);
+
+    if (raceInfo.isPublic && raceInfo.users.length === 2) {
+      raceInfo.countdownStart = Date.now();
+      raceInfo.raceStart = raceInfo.countdownStart + this.publicTimeout;
+
+      raceInfo.users.forEach((username) => {
+        raceInfo.userInfo[username].joinedTime = raceInfo.countdownStart!;
+      });
+
+      setTimeout(() => {
+        this.start_race('', raceInfo);
+      }, this.publicTimeout);
+    }
 
     this.broadcast_race_info(raceInfo);
 
@@ -131,9 +146,12 @@ class WsHandler {
       roomId = v4();
     }
 
-    const timeout = isPublic ? this.publicTimeout : this.soloTimeout;
-    const countdownStart = Math.floor(Date.now() / 1000) * 1000; // Multiple of 1 second
-    const raceStart = countdownStart + timeout;
+    let raceStart;
+    let countdownStart;
+    if (isSolo) {
+      countdownStart = Math.floor(Date.now() / 1000) * 1000; // Multiple of 1 second
+      raceStart = countdownStart + this.soloTimeout;
+    }
 
     const raceInfo: RaceData = {
       roomId,
@@ -155,10 +173,10 @@ class WsHandler {
       this.broadcast_race_info(raceInfo);
     });
 
-    if (isPublic || isSolo) {
+    if (isSolo) {
       setTimeout(() => {
-        this.start_race('', raceInfo);
-      }, isPublic ? this.publicTimeout : this.soloTimeout);
+        this.start_race(raceInfo.owner, raceInfo);
+      }, this.soloTimeout);
     }
 
     this.rooms.set(roomId, raceInfo);
@@ -167,12 +185,29 @@ class WsHandler {
   }
 
   start_race(owner: string, raceInfo: RaceData) {
-    if (owner === raceInfo.owner || raceInfo.isSolo) {
-      raceInfo.hasStarted = true;
-      this.broadcast_race_info(raceInfo);
-    } else {
+    if (owner !== raceInfo.owner) {
       const ws = this.userInfo.get(owner);
       if (ws) { ws.send(JSON.stringify({ type: 'error', message: 'You do not have permission to start race' })); }
+      return;
+    }
+
+    if (!raceInfo.isPublic && !raceInfo.isSolo && owner === raceInfo.owner) {
+      raceInfo.countdownStart = Date.now();
+      raceInfo.raceStart = raceInfo.countdownStart + this.soloTimeout;
+
+      setTimeout(() => {
+        raceInfo.hasStarted = true;
+        this.broadcast_race_info(raceInfo);
+      }, this.soloTimeout);
+
+      raceInfo.users.forEach((user) => {
+        raceInfo.userInfo[user].joinedTime = Date.now();
+      });
+
+      this.broadcast_race_info(raceInfo);
+    } else if (raceInfo.isPublic || raceInfo.isSolo) {
+      raceInfo.hasStarted = true;
+      this.broadcast_race_info(raceInfo);
     }
   }
 
@@ -182,13 +217,15 @@ class WsHandler {
     // causes blocking for other users in other rooms
     if (raceInfo.passageId) {
       createRace(raceInfo.passageId).then((dbRace) => {
-        Object.entries(raceInfo.userInfo).forEach(([username, user]) => {
-          getUserByField('username', username).then((dbUser) => {
-            if (dbUser) {
-              createResult(dbUser.id, dbRace.id, user.wpm, 1);
-            }
+        Object.entries(raceInfo.userInfo)
+          .sort(finishSortFunction)
+          .forEach(([username, user], i) => {
+            getUserByField('username', username).then((dbUser) => {
+              if (dbUser) {
+                createResult(dbUser.id, dbRace.id, user.wpm, i + 1);
+              }
+            });
           });
-        });
       });
     }
     raceInfo.users.forEach((user) => {
@@ -199,7 +236,7 @@ class WsHandler {
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
     raceInfo.userInfo[user].charsTyped = charsTyped;
     const endTime = new Date();
-    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart);
+    const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart!);
     raceInfo.userInfo[user].wpm = Math.floor(wpm);
 
     if (raceInfo.userInfo[user].inventory === null && Math.random() < 0.05) {
