@@ -28,7 +28,7 @@ class WsHandler {
     rooms?: Map<string, RaceData>,
     userInfo?: Map<string, WebSocket>,
     publicTimeout: number = 10000,
-    soloTimeout: number = 3000,
+    soloTimeout: number = 5000,
   ) {
     this.maxUsers = maxUsers;
     this.rooms = rooms || new Map<string, RaceData>();
@@ -172,7 +172,7 @@ class WsHandler {
 
     if (isSolo) {
       setTimeout(() => {
-        this.start_race('', raceInfo);
+        this.start_race(raceInfo.owner, raceInfo);
       }, this.soloTimeout);
     }
 
@@ -182,12 +182,29 @@ class WsHandler {
   }
 
   start_race(owner: string, raceInfo: RaceData) {
-    if (owner === raceInfo.owner || raceInfo.isSolo) {
-      raceInfo.hasStarted = true;
-      this.broadcast_race_info(raceInfo);
-    } else {
+    if (owner !== raceInfo.owner) {
       const ws = this.userInfo.get(owner);
       if (ws) { ws.send(JSON.stringify({ type: 'error', message: 'You do not have permission to start race' })); }
+      return;
+    }
+
+    if (!raceInfo.isPublic && !raceInfo.isSolo && owner === raceInfo.owner) {
+      raceInfo.countdownStart = Date.now();
+      raceInfo.raceStart = raceInfo.countdownStart + this.soloTimeout;
+
+      setTimeout(() => {
+        raceInfo.hasStarted = true;
+        this.broadcast_race_info(raceInfo);
+      }, this.soloTimeout);
+
+      raceInfo.users.forEach((user) => {
+        raceInfo.userInfo[user].joinedTime = Date.now();
+      });
+
+      this.broadcast_race_info(raceInfo);
+    } else if (raceInfo.isPublic || raceInfo.isSolo) {
+      raceInfo.hasStarted = true;
+      this.broadcast_race_info(raceInfo);
     }
   }
 
