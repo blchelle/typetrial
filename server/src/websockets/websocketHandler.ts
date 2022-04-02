@@ -239,7 +239,7 @@ class WsHandler {
     const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart!);
     raceInfo.userInfo[user].wpm = Math.floor(wpm);
 
-    if (raceInfo.userInfo[user].inventory === null && Math.random() < 0.05) {
+    if (raceInfo.userInfo[user].inventory === null && !raceInfo.isSolo && Math.random() < 0.05) {
       let powerup:Powerup;
       const powerupRand = Math.random();
       if (powerupRand < 0.05) {
