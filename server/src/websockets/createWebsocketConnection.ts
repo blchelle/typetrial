@@ -4,7 +4,7 @@ import { Request } from 'express';
 import { writeLog } from '../utils/log';
 import WsHandler from '../websockets/websocketHandler';
 import {
-  UserInfo, ConnectPrivateMessage, CreatePrivateMessage, InMessage, TypeMessage,
+  UserInfo, ConnectPrivateMessage, CreatePrivateMessage, InMessage, TypeMessage, UsePowerupMessage,
 } from '../utils/types';
 
 export const sendError = (ws: WebSocket, message: string) => {
@@ -27,60 +27,87 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
   } catch {
     message = undefined;
   }
+  if (!message) {
+    sendError(ws, 'Wrong message type');
+    return userInfo;
+  }
 
-  if (message && message.type === 'connect_public') {
-    const raceInfo = wsHandler.connect_user_to_public_room(userInfo.user, ws);
-    if (raceInfo) {
-      userInfo = { user: userInfo.user, raceInfo };
-    } else {
-      userInfo.user = '';
-      sendError(ws, 'Could not connect to room, please reload');
-    }
-  } else if (message && message.type === 'connect_private') {
-    const privateMessage = safeCast<ConnectPrivateMessage>(message);
-    if (!privateMessage) {
-      sendError(ws, 'INVALID MESSAGE');
-    }
-    if (privateMessage) {
-      const { roomId } = privateMessage;
-      const raceInfo = wsHandler.connect_user_to_room(userInfo.user, ws, roomId);
-
+  switch (message.type) {
+    case ('connect_public'): {
+      const raceInfo = wsHandler.connect_user_to_public_room(userInfo.user, ws);
       if (raceInfo) {
         userInfo = { user: userInfo.user, raceInfo };
       } else {
         userInfo.user = '';
         sendError(ws, 'Could not connect to room, please reload');
       }
+      break;
     }
-  } else if (message && message.type === 'create_private') {
-    const createPrivateMessage = safeCast<CreatePrivateMessage>(message);
-    if (!createPrivateMessage) {
-      sendError(ws, 'INVALID MESSAGE');
-      return userInfo;
-    }
+    case ('connect_private'): {
+      const privateMessage = safeCast<ConnectPrivateMessage>(message);
+      if (!privateMessage) {
+        sendError(ws, 'INVALID MESSAGE');
+      }
+      if (privateMessage) {
+        const { roomId } = privateMessage;
+        const raceInfo = wsHandler.connect_user_to_room(userInfo.user, ws, roomId);
 
-    const roomId = wsHandler.create_room(false, createPrivateMessage.solo, userInfo.user);
-    const raceInfo = wsHandler.connect_user_to_room(userInfo.user, ws, roomId);
-
-    if (raceInfo) {
-      userInfo = { user: userInfo.user, raceInfo };
-    } else {
-      userInfo.user = '';
-      sendError(ws, 'Could not create room, please reload');
+        if (raceInfo) {
+          userInfo = { user: userInfo.user, raceInfo };
+        } else {
+          userInfo.user = '';
+          sendError(ws, 'Could not connect to room, please reload');
+        }
+      }
+      break;
     }
-  } else if (message && message.type === 'start') {
-    wsHandler.start_race(userInfo.user, userInfo.raceInfo);
-  } else if (message && message.type === 'type') {
-    const typeMessage = safeCast<TypeMessage>(message);
-    if (typeMessage) {
-      const { charsTyped } = typeMessage;
+    case ('create_private'): {
+      const createPrivateMessage = safeCast<CreatePrivateMessage>(message);
+      if (!createPrivateMessage) {
+        sendError(ws, 'INVALID MESSAGE');
+        return userInfo;
+      }
 
-      wsHandler.type_char(charsTyped, userInfo.user, userInfo.raceInfo);
-    } else {
-      sendError(ws, 'Could not update room');
+      const roomId = wsHandler.create_room(false, createPrivateMessage.solo, userInfo.user);
+      const raceInfo = wsHandler.connect_user_to_room(userInfo.user, ws, roomId);
+
+      if (raceInfo) {
+        userInfo = { user: userInfo.user, raceInfo };
+      } else {
+        userInfo.user = '';
+        sendError(ws, 'Could not create room, please reload');
+      }
+      break;
     }
-  } else {
-    sendError(ws, 'Wrong message type');
+    case ('start'): {
+      wsHandler.start_race(userInfo.user, userInfo.raceInfo);
+      break;
+    }
+    case ('type'): {
+      const typeMessage = safeCast<TypeMessage>(message);
+      if (typeMessage) {
+        const { charsTyped } = typeMessage;
+
+        wsHandler.type_char(charsTyped, userInfo.user, userInfo.raceInfo);
+      } else {
+        sendError(ws, 'Could not update room');
+      }
+      break;
+    }
+    case ('powerup'): {
+      const typeMessage = safeCast<UsePowerupMessage>(message);
+      if (typeMessage) {
+        const { powerup } = typeMessage;
+        wsHandler.use_powerup(powerup, userInfo.user, userInfo.raceInfo);
+      } else {
+        sendError(ws, 'Could not update room');
+      }
+      break;
+    }
+    default: {
+      sendError(ws, 'Wrong message type');
+      break;
+    }
   }
 
   return userInfo;
@@ -90,6 +117,7 @@ export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler,
 
   let userInfo: UserInfo = {
     user,
+    // TODO: we could just make this optional
     raceInfo: {
       roomId: '',
       hasStarted: false,
@@ -101,6 +129,7 @@ export const createHandler = (user: string, ws: WebSocket, wsHandler: WsHandler,
       users: [],
       userInfo: {},
       owner: '',
+      activeEffects: [],
     },
   };
 

@@ -1,3 +1,12 @@
+export type Powerup = ('rumble'|'whiteout'|'doubletap'|'knockout');
+
+export interface Effect {
+    powerupType: Powerup;
+    user: string;
+    endTime: number;
+    target?: string|null;
+}
+
 export interface WsUser {
     color: string;
     charsTyped: number;
@@ -5,6 +14,7 @@ export interface WsUser {
     joinedTime: number;
     finishTime?: Date;
     finished: boolean;
+    inventory: Powerup | null;
 }
 
 export interface RaceData {
@@ -17,6 +27,7 @@ export interface RaceData {
     passage?: string,
     users: string [],
     userInfo: {[key: string]: WsUser; },
+    activeEffects: Effect[];
     owner: string,
 }
 
@@ -40,6 +51,11 @@ export interface RaceDataMessage extends OutMessage {
 export interface RaceUpdateMessage extends OutMessage {
     type: 'update';
     update: any;
+}
+
+export interface UsePowerupMessage extends InMessage {
+    type: 'powerup';
+    powerup: string;
 }
 
 export interface ConnectPublicMessage extends InMessage {

@@ -58,10 +58,11 @@ describe('WsHandler', () => {
       countdownStart,
       raceStart,
       passage: 'TODO',
+      activeEffects: [],
       users: [USER1],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
         },
       },
     };
@@ -74,13 +75,14 @@ describe('WsHandler', () => {
       countdownStart,
       raceStart,
       passage: 'TODO',
+      activeEffects: [],
       users: [USER1, USER2],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
         },
         [USER2]: {
-          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime,
+          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
         },
       },
     };
@@ -93,13 +95,14 @@ describe('WsHandler', () => {
       countdownStart,
       raceStart,
       passage: 'TODO',
+      activeEffects: [],
       users: [USER1, USER2],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
         },
         [USER2]: {
-          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime,
+          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
         },
       },
     };
@@ -223,7 +226,7 @@ describe('WsHandler', () => {
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
     wsHandler.start_race('', RACE_INFO1);
 
-    const updatedRaceInfo = {
+    const updatedRaceInfo : RaceData = {
       owner: '',
       roomId: ROOM_ID,
       hasStarted: true,
@@ -232,10 +235,11 @@ describe('WsHandler', () => {
       countdownStart,
       raceStart,
       passage: 'TODO',
+      activeEffects: [],
       users: [USER1],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
         },
       },
     };
@@ -293,10 +297,11 @@ describe('WsHandler', () => {
         countdownStart,
         raceStart,
         passage: 'TODO',
+        activeEffects: [],
         users: [USER2],
         userInfo: {
           [USER2]: {
-            color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime,
+            color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
           },
         },
       },
@@ -326,7 +331,7 @@ describe('WsHandler', () => {
   });
 
   it('ExistingUserTriesToRoom', async () => {
-    const RACEINFO = {
+    const RACEINFO : RaceData = {
       owner: '',
       roomId: ROOM_ID,
       hasStarted: false,
@@ -335,10 +340,11 @@ describe('WsHandler', () => {
       countdownStart,
       raceStart,
       passage: 'TODO',
+      activeEffects: [],
       users: [],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
         },
       },
     };

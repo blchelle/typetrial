@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Chip,
-  Chips,
-  Container,
-  Paper, Text, TextInput, useMantineTheme,
+  Badge, Container, Paper, Text, TextInput, useMantineTheme,
 } from '@mantine/core';
-import { RaceData, TypeMessage, WsUser } from '@utils/types';
+import {
+  RaceData, TypeMessage, WsUser, UsePowerupMessage,
+} from '@utils/types';
 import useUser from '@hooks/useUser';
 
 import '../styles/powerups.css';
@@ -25,15 +24,14 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentWordInput, setCurrentWordInput] = useState('');
   const [currentCharIndex, setCurrentCharIndex] = useState<number>(0);
-  const [error, setError] = useState(false);
-
-  const [powerups, setPowerups] = useState<string[]>([]);
+  const [typingState, setTypingState] = useState<'Correct'|'Error'|'Powerup'>('Correct');
+  const [effectIndex, setEffectIndex] = useState(0);
+  const [effects, setEffects] = useState<string[]>([]);
 
   let passage;
   if (!raceInfo.passage) {
-    console.error('Passage could not be loaded');
     passage = 'waiting for passage...';
-  } else if (powerups.includes('doubletap')) {
+  } else if (effects.includes('doubletap')) {
     passage = raceInfo.passage.split(' ').map((word, i) => (i === currentWordIndex ? word + word : word)).join(' ');
   } else {
     passage = raceInfo.passage;
@@ -42,9 +40,11 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
   const blurb = passage.split(' ');
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (powerups.includes('knockout')) return;
+    if (effects.includes('knockout')) return;
 
     const { value } = event.target;
+
+    const { inventory } = raceInfo.userInfo[username];
 
     const targetWord = blurb[currentWordIndex];
     const typedChars = [...blurb.slice(0, currentWordIndex), ''].join(' ').length + lastMatchingCharIndex(event.target.value, `${targetWord} `);
@@ -54,22 +54,70 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       value === `${targetWord} `
       || (value === targetWord && currentWordIndex === blurb.length - 1)
     ) {
-      setError(false);
+      setTypingState('Correct');
       setCurrentWordIndex(currentWordIndex + 1);
       setCurrentWordInput('');
 
-      if (powerups.includes('doubletap')) {
+      if (effects.includes('doubletap')) {
         setCurrentCharIndex(currentCharIndex - Math.ceil(targetWord.length / 2) + 1);
       }
 
       sendTypingUpdate(typedChars);
-    } else if (value !== targetWord.substring(0, value.length)) {
-      setError(true);
-      setCurrentWordInput(event.target.value);
-    } else {
-      setError(false);
+    } else if (inventory && (value.toLowerCase() === `#${inventory} `)) {
+      setTypingState('Correct');
+      setCurrentWordInput('');
+      const powerupMessage: UsePowerupMessage = {
+        type: 'powerup',
+        powerup: inventory,
+      };
+      websocket?.send(JSON.stringify(powerupMessage));
+    } else if (value === targetWord.substring(0, value.length)) {
+      setTypingState('Correct');
       setCurrentWordInput(event.target.value);
       sendTypingUpdate(typedChars);
+    } else if (inventory && (value.toLowerCase() === `#${inventory}`?.substring(0, value.length))) {
+      setTypingState('Powerup');
+      setCurrentWordInput(event.target.value);
+    } else {
+      setTypingState('Error');
+      setCurrentWordInput(event.target.value);
+    }
+  };
+
+  useEffect(() => {
+    if (raceInfo.activeEffects.length === 0 || !raceInfo.activeEffects[effectIndex]) {
+      return;
+    }
+    const { powerupType, user, target } = raceInfo.activeEffects[effectIndex];
+    const powerIndexClosure = effectIndex;
+    setEffectIndex(effectIndex + 1);
+    if (user === username || (target && target !== username)) {
+      return;
+    }
+    setEffects((localEffects) => [...localEffects, powerupType]);
+    setTimeout(() => {
+      setEffects((localEffects) => {
+        const index = localEffects.indexOf(powerupType);
+        if (index > -1) {
+          const effectsCopy = [...localEffects];
+          effectsCopy.splice(index, 1);
+          return effectsCopy;
+        }
+        return localEffects;
+      });
+    }, raceInfo.activeEffects[powerIndexClosure].endTime - Date.now());
+  }, [raceInfo.activeEffects]);
+
+  const getBackgroundColor = () => {
+    switch (typingState) {
+      case ('Error'):
+        return colors.red[5];
+      case ('Powerup'):
+        return colors.pink[5];
+      case ('Correct'):
+        return 'auto';
+      default:
+        return 'auto';
     }
   };
 
@@ -134,13 +182,13 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
         </div>
         <div className="rounded-lg bg-gray-200 p-8">
           <div
-            className={powerups.includes('rumble') ? 'rumble' : ''}
+            className={effects.includes('rumble') ? 'rumble' : ''}
             style={{ userSelect: 'none' }}
           >
             {passage.split('').map((letter, charIndex) => {
               const color = (charIndex < currentCharIndex) ? colors.green[8] : colors.gray[9];
 
-              const baseOpacity = powerups.includes('whiteout') ? 0.07 : 1;
+              const baseOpacity = effects.includes('whiteout') ? 0.07 : 1;
               const opacity = (charIndex < currentCharIndex) ? 1 : baseOpacity;
 
               return (
@@ -152,29 +200,26 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             })}
           </div>
           { /* An invisible copy of the text for when rumble is on, it maintains the box height */
-            powerups.includes('rumble') && (
+            effects.includes('rumble') && (
             <div style={{ opacity: 0 }}>
               <Text>{passage}</Text>
             </div>
             )
           }
           <TextInput
-            styles={{ defaultVariant: { backgroundColor: error ? colors.red[5] : 'auto' } }}
+            styles={{ defaultVariant: { backgroundColor: getBackgroundColor() } }}
             onChange={handleInputChange}
             value={currentWordInput}
-            disabled={currentWordIndex === blurb.length || powerups.includes('knockout') || !raceInfo.hasStarted}
+            disabled={currentWordIndex === blurb.length || effects.includes('knockout') || !raceInfo.hasStarted}
             mt="lg"
             ref={focusTrapRef}
           />
           {currentWordIndex === blurb.length && <p>You Win!</p>}
         </div>
+        <div>
+          <Badge color="pink" size="lg" variant="filled" style={{ marginTop: '15px', visibility: raceInfo.userInfo[username].inventory ? 'visible' : 'hidden' }}>{`#${raceInfo.userInfo[username].inventory}`}</Badge>
+        </div>
       </Paper>
-      <Chips mt={8} value={powerups} onChange={setPowerups} multiple>
-        <Chip value="rumble">Rumble</Chip>
-        <Chip value="whiteout">Whiteout</Chip>
-        <Chip value="doubletap">Doubletap</Chip>
-        <Chip value="knockout">Knockout</Chip>
-      </Chips>
     </Container>
   );
 };
