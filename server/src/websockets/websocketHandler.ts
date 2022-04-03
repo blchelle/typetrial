@@ -13,6 +13,8 @@ import {
 
 export const PLAYER_COLORS = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
 
+const TIMEOUT_MS = 180000;
+
 class WsHandler {
   maxUsers: number;
 
@@ -110,7 +112,6 @@ class WsHandler {
   }
 
   disconnect_user_from_room(user: string, raceInfo: RaceData) {
-    this.userInfo.get(user)?.close();
     this.userInfo.delete(user);
     const index = raceInfo.users.indexOf(user);
     if (index > -1) {
@@ -120,13 +121,14 @@ class WsHandler {
       }
 
       if (!raceInfo.hasStarted && user === raceInfo.owner) {
-        this.rooms.delete(raceInfo.roomId);
         const message: ErrorMessage = { type: 'error', message: 'Room creator disconnected' };
         this.broadcast_message(raceInfo, message);
-      } else if (raceInfo.users.length === 0) {
-        this.rooms.delete(raceInfo.roomId);
       } else {
         this.broadcast_race_info(raceInfo);
+      }
+
+      if (raceInfo.users.length === 0) {
+        this.rooms.delete(raceInfo.roomId);
       }
     }
   }
@@ -212,6 +214,27 @@ class WsHandler {
       raceInfo.hasStarted = true;
       this.broadcast_race_info(raceInfo);
     }
+
+    setTimeout(() => {
+      const raceInfoLocal = this.rooms.get(raceInfo?.roomId);
+      if (!raceInfoLocal) {
+        return;
+      }
+      this.end_race(raceInfoLocal);
+      setTimeout(() => {
+        const message: ErrorMessage = { type: 'error', message: 'Race Timed Out!' };
+        this.broadcast_message(raceInfo, message);
+
+        const cloneallusers = [...raceInfo.users];
+        cloneallusers.forEach((user) => {
+          const ws = this.userInfo.get(user);
+          this.disconnect_user_from_room(user, raceInfo);
+          if (ws?.readyState === ws?.OPEN) {
+            ws?.close();
+          }
+        });
+      }, 100);
+    }, TIMEOUT_MS + this.soloTimeout);
   }
 
   // eslint-disable-next-line class-methods-use-this
