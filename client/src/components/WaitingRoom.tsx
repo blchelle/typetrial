@@ -3,6 +3,7 @@ import { Button, Text, Group } from '@mantine/core';
 import { useModals } from '@mantine/modals';
 import useUser from '@hooks/useUser';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useNotifications } from '@mantine/notifications';
 import {
   Message, RaceDataMessage, RaceData, StartMessage, ErrorMessage,
 } from '../utils/types';
@@ -35,7 +36,9 @@ const Room: React.FC<RoomProps> = (
 
   const [websocket, setWebsocket] = useState<WebSocket>();
   const [errorMessage, setErrorMessage] = useState('');
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | undefined>();
   const roomId = !isPublic && !isCreator ? useParams().roomId : '';
+  const notifications = useNotifications();
 
   const modals = useModals();
   const navigate = useNavigate();
@@ -113,6 +116,20 @@ const Room: React.FC<RoomProps> = (
       openModal();
     }
   }, [errorMessage]);
+
+  useEffect(() => {
+    if (raceInfo.users.length < 2 && !timeoutId && isPublic) {
+      setTimeoutId(setTimeout(() => {
+        notifications.showNotification({
+          title: 'Warning',
+          color: 'yellow',
+          message: 'There are no other users looking for public matches.',
+        });
+      }, 180000));
+    } else if (raceInfo.users.length > 1 && timeoutId && isPublic) {
+      clearTimeout(timeoutId);
+    }
+  }, [raceInfo.users]);
 
   const startRace = () => {
     const startMessage: StartMessage = {
