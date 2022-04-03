@@ -110,11 +110,14 @@ class WsHandler {
   }
 
   disconnect_user_from_room(user: string, raceInfo: RaceData) {
+    this.userInfo.get(user)?.close();
     this.userInfo.delete(user);
     const index = raceInfo.users.indexOf(user);
     if (index > -1) {
-      raceInfo.users.splice(index, 1);
-      delete raceInfo.userInfo[user];
+      if (!raceInfo.userInfo[user].finished) {
+        raceInfo.users.splice(index, 1);
+        delete raceInfo.userInfo[user];
+      }
 
       if (!raceInfo.hasStarted && user === raceInfo.owner) {
         this.rooms.delete(raceInfo.roomId);
@@ -228,9 +231,6 @@ class WsHandler {
           });
       });
     }
-    raceInfo.users.forEach((user) => {
-      this.disconnect_user_from_room(user, raceInfo);
-    });
   }
 
   type_char(charsTyped: number, user: string, raceInfo: RaceData) {
