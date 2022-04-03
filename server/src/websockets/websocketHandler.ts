@@ -12,6 +12,7 @@ import {
 } from '../utils/types';
 
 export const PLAYER_COLORS = ['#F52E2E', '#5463FF', '#FFC717', '#1F9E40', '#FF6619'];
+export const BOT_NAME = 'Bot';
 
 class WsHandler {
   maxUsers: number;
@@ -41,10 +42,12 @@ class WsHandler {
   broadcast_message(raceInfo: RaceData, message: Message) {
     raceInfo.users.forEach((user) => {
       const ws = this.userInfo.get(user);
-      try {
-        ws?.send(JSON.stringify(message));
-      } catch (_) {
-        this.disconnect_user_from_room(user, raceInfo);
+      if (ws) {
+        try {
+          ws?.send(JSON.stringify(message));
+        } catch (_) {
+          this.disconnect_user_from_room(user, raceInfo);
+        }
       }
     });
   }
@@ -174,7 +177,18 @@ class WsHandler {
     });
 
     if (isSolo) {
-      setTimeout(() => {
+      const takenColors = Object.values(raceInfo.userInfo).map(({ color }) => color);
+      const availableColors = PLAYER_COLORS.filter((color) => !takenColors.includes(color));
+      raceInfo.userInfo[BOT_NAME] = {
+        color: availableColors[0],
+        charsTyped: 0,
+        wpm: 0,
+        finished: false,
+        joinedTime: Date.now(),
+        inventory: null,
+      };
+
+      raceInfo.users.push(BOT_NAME); setTimeout(() => {
         this.start_race(raceInfo.owner, raceInfo);
       }, this.soloTimeout);
     }
@@ -208,6 +222,22 @@ class WsHandler {
     } else if (raceInfo.isPublic || raceInfo.isSolo) {
       raceInfo.hasStarted = true;
       this.broadcast_race_info(raceInfo);
+    }
+
+    if (raceInfo.isSolo) {
+      const { roomId } = raceInfo;
+      const interval = setInterval(() => {
+        const ri = this.rooms.get(roomId);
+        if (!ri) {
+          return;
+        }
+        const botuser = ri.userInfo[BOT_NAME];
+        this.type_char(botuser.charsTyped + 1, BOT_NAME, raceInfo);
+        const { passage } = raceInfo;
+        if (passage && botuser.charsTyped === passage.length) {
+          clearInterval(interval);
+        }
+      }, 300);
     }
   }
 
