@@ -1,12 +1,11 @@
 import { v4 } from 'uuid';
 import WebSocket from 'ws';
 import { getPassage } from '../models/passage';
-import { createRace } from '../models/race';
+import { createRace, getRace } from '../models/race';
 import { createResult } from '../models/result';
 import { getUserByField } from '../models/user';
 import { MILLISECONDS_PER_MINUTE } from '../utils/constants';
 import { writeLog } from '../utils/log';
-import { finishSortFunction } from '../utils/helpers';
 import {
   RaceData, Message, RaceDataMessage, ErrorMessage, Powerup, Effect,
 } from '../utils/types';
@@ -42,16 +41,18 @@ class WsHandler {
   }
 
   broadcast_message(raceInfo: RaceData, message: Message) {
-    raceInfo.users.forEach((user) => {
-      const ws = this.userInfo.get(user);
-      if (ws) {
-        try {
-          ws?.send(JSON.stringify(message));
-        } catch (_) {
-          this.disconnect_user_from_room(user, raceInfo);
+    raceInfo.users
+      .filter((username) => !raceInfo.userInfo[username].left)
+      .forEach((user) => {
+        const ws = this.userInfo.get(user);
+        if (ws) {
+          try {
+            ws?.send(JSON.stringify(message));
+          } catch (_) {
+            this.disconnect_user_from_room(user, raceInfo);
+          }
         }
-      }
-    });
+      });
   }
 
   broadcast_race_info(raceInfo: RaceData) {
@@ -92,11 +93,12 @@ class WsHandler {
       finished: false,
       joinedTime: Date.now(),
       inventory: null,
+      left: false,
     };
 
     raceInfo.users.push(user);
 
-    if (raceInfo.isPublic && raceInfo.users.length === 2) {
+    if (raceInfo.isPublic && !raceInfo.countdownStart && raceInfo.users.length === 2) {
       raceInfo.countdownStart = Date.now();
       raceInfo.raceStart = raceInfo.countdownStart + this.publicTimeout;
 
@@ -118,6 +120,8 @@ class WsHandler {
     this.userInfo.delete(user);
     const index = raceInfo.users.indexOf(user);
     if (index > -1) {
+      raceInfo.userInfo[user].left = true;
+
       if (!raceInfo.userInfo[user].finished) {
         raceInfo.users.splice(index, 1);
         delete raceInfo.userInfo[user];
@@ -179,6 +183,8 @@ class WsHandler {
       raceInfo.passage = passage.text;
       raceInfo.passageId = passage.id;
       this.broadcast_race_info(raceInfo);
+
+      createRace(raceInfo.passageId).then((dbRace) => { raceInfo.id = dbRace.id; });
     });
 
     if (isSolo) {
@@ -191,6 +197,7 @@ class WsHandler {
         finished: false,
         joinedTime: Date.now(),
         inventory: null,
+        left: false,
       };
 
       raceInfo.users.push(BOT_NAME); setTimeout(() => {
@@ -236,10 +243,10 @@ class WsHandler {
         if (!ri) {
           return;
         }
-        const botuser = ri.userInfo[BOT_NAME];
-        this.type_char(botuser.charsTyped + 1, BOT_NAME, raceInfo);
+        const botUser = ri.userInfo[BOT_NAME];
+        this.type_char(botUser.charsTyped + 1, BOT_NAME, raceInfo);
         const { passage } = raceInfo;
-        if (passage && botuser.charsTyped === passage.length) {
+        if (passage && botUser.charsTyped === passage.length) {
           clearInterval(interval);
         }
       }, 300);
@@ -250,13 +257,13 @@ class WsHandler {
       if (!raceInfoLocal) {
         return;
       }
-      this.end_race(raceInfoLocal);
+
       setTimeout(() => {
         const message: ErrorMessage = { type: 'error', message: 'Race Timed Out!' };
         this.broadcast_message(raceInfo, message);
 
-        const cloneallusers = [...raceInfo.users];
-        cloneallusers.forEach((user) => {
+        const usersCopy = [...raceInfo.users];
+        usersCopy.forEach((user) => {
           const ws = this.userInfo.get(user);
           this.disconnect_user_from_room(user, raceInfo);
           if (ws?.readyState === ws?.OPEN) {
@@ -264,35 +271,16 @@ class WsHandler {
           }
         });
       }, 100);
-    }, TIMEOUT_MS + this.soloTimeout);
+    }, process.env.NODE_ENV === 'test' ? 0 : TIMEOUT_MS + this.soloTimeout);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  end_race(raceInfo: RaceData) {
-    // This promise chain monstrosity is required, since await in a websocket
-    // causes blocking for other users in other rooms
-    if (raceInfo.passageId) {
-      createRace(raceInfo.passageId).then((dbRace) => {
-        Object.entries(raceInfo.userInfo)
-          .sort(finishSortFunction)
-          .forEach(([username, user], i) => {
-            getUserByField('username', username).then((dbUser) => {
-              if (dbUser) {
-                createResult(dbUser.id, dbRace.id, user.wpm, i + 1);
-              }
-            });
-          });
-      });
-    }
-  }
-
-  type_char(charsTyped: number, user: string, raceInfo: RaceData) {
-    raceInfo.userInfo[user].charsTyped = charsTyped;
+  type_char(charsTyped: number, username: string, raceInfo: RaceData) {
+    raceInfo.userInfo[username].charsTyped = charsTyped;
     const endTime = new Date();
     const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart!);
-    raceInfo.userInfo[user].wpm = Math.floor(wpm);
+    raceInfo.userInfo[username].wpm = Math.floor(wpm);
 
-    if (raceInfo.userInfo[user].inventory === null && !raceInfo.isSolo && Math.random() < 0.05) {
+    if (raceInfo.userInfo[username].inventory === null && !raceInfo.isSolo && Math.random() < 0.05) {
       let powerup:Powerup;
       const powerupRand = Math.random();
       if (powerupRand < 0.05) {
@@ -304,16 +292,23 @@ class WsHandler {
       } else {
         powerup = 'whiteout';
       }
-      raceInfo.userInfo[user].inventory = powerup;
+      raceInfo.userInfo[username].inventory = powerup;
     }
 
     if (raceInfo.passage && charsTyped === raceInfo.passage.length) {
-      raceInfo.userInfo[user].finished = true;
-      raceInfo.userInfo[user].finishTime = endTime;
-      const users = raceInfo.userInfo;
-      if (Object.values(users).every((u) => u.finished)) {
-        this.end_race(raceInfo);
-      }
+      raceInfo.userInfo[username].finished = true;
+      raceInfo.userInfo[username].finishTime = endTime;
+
+      Promise.all([
+        getUserByField('username', username),
+        getRace(raceInfo.id),
+      ]).then(([dbUser, dbRace]) => {
+        const rankings = Object.entries(raceInfo.userInfo).filter(([, userInfo]) => userInfo.finishTime);
+        rankings.sort(([, userA], [, userB]) => userA.finishTime!.getTime() - userB.finishTime!.getTime());
+        const myRank = rankings.findIndex(([user]) => user === username) + 1;
+
+        createResult(dbUser?.id, dbRace.id, raceInfo.userInfo[username].wpm, myRank);
+      });
     }
 
     this.broadcast_race_info(raceInfo);
@@ -326,11 +321,11 @@ class WsHandler {
       // Target the person in first place!
         const [target] = Object.entries(raceInfo.userInfo)
           .map<[string, number]>(([username, u]) => [username, u.charsTyped])
-          .reduce<[string|null, number]>(([prevusername, prevcharsTyped], [username, charsTyped]) => {
-            if (prevcharsTyped < charsTyped) {
+          .reduce<[string|null, number]>(([prevUsername, prevCharsTyped], [username, charsTyped]) => {
+            if (prevCharsTyped < charsTyped) {
               return [username, charsTyped];
             }
-            return [prevusername, prevcharsTyped];
+            return [prevUsername, prevCharsTyped];
           }, [null, 0]);
         newEffect = {
           powerupType, user, endTime: Date.now() + 1500, target,

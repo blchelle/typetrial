@@ -17,6 +17,7 @@ export interface WsUser {
     finishTime?: Date;
     finished: boolean;
     inventory: Powerup;
+    left: boolean;
 }
 
 export interface UserWithResults extends User {
@@ -27,6 +28,7 @@ export interface UserWithResults extends User {
 }
 
 export interface RaceData {
+    id?: number;
     roomId: string;
     hasStarted: boolean;
     isPublic: boolean;
