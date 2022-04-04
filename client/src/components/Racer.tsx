@@ -21,7 +21,7 @@ const Racer: React.FC<RacerProps> = ({
 
   return (
     <Group direction="column" spacing={0} align="stretch" ref={trackRef}>
-      <Text size="sm">{`${name}${username===name ? ' (you)':''}`}</Text>
+      <Text size="sm">{`${name}${username === name ? ' (you)' : ''}`}</Text>
       <Group position="apart">
         <RacerJoe color={color} progress={progress * trackWidth} />
         <Text style={{ width: '80px', borderLeft: '2px solid #000' }} align="right">
