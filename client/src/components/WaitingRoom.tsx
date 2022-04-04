@@ -61,7 +61,7 @@ const Room: React.FC<RoomProps> = (
     );
   };
 
-  const createSocket = async (name: string) => {
+  const createSocket = (name: string) => {
     const ws = new WebSocket(`${env.baseSocketUrl}/api/connect/${name}`);
 
     ws.onopen = () => {
@@ -101,11 +101,14 @@ const Room: React.FC<RoomProps> = (
         ws.send(connectMessage);
       }
     };
+    return ws;
   };
 
   useEffect(() => {
-    websocket?.close();
-    createSocket(myUsername);
+    const ws = createSocket(myUsername);
+    return function cleanup() {
+      ws.close();
+    };
   }, []);
 
   useEffect(() => {
