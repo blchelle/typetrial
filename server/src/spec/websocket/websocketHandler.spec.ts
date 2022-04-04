@@ -5,6 +5,7 @@ import { Passage } from '@prisma/client';
 import WsHandler, { PLAYER_COLORS } from '../../websockets/websocketHandler';
 import { RaceData, RaceDataMessage } from '../../utils/types';
 import { getPassage } from '../../models/passage';
+import dbMock from '../prismaMock';
 
 jest.mock('ws', () => ({
   WebSocket: jest.fn().mockImplementation((server) => new MockSocket(server)),
@@ -42,6 +43,10 @@ describe('WsHandler', () => {
     await mockServer.connected;
 
     mockGetPassage.mockReset();
+    dbMock.race.create.mockResolvedValue({ id: 1, passageId: 1, createdAt: new Date() });
+    dbMock.result.create.mockResolvedValue({
+      id: 1, userId: 1, raceId: 1, wpm: 50, rank: 1,
+    });
 
     rooms = new Map<string, RaceData>();
     userInfo = new Map<string, WebSocket>();
@@ -62,7 +67,7 @@ describe('WsHandler', () => {
       users: [USER1],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null, left: false,
         },
       },
     };
@@ -79,10 +84,10 @@ describe('WsHandler', () => {
       users: [USER1, USER2],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null, left: false,
         },
         [USER2]: {
-          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
+          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null, left: false,
         },
       },
     };
@@ -99,10 +104,10 @@ describe('WsHandler', () => {
       users: [USER1, USER2],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null, left: false,
         },
         [USER2]: {
-          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
+          color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null, left: false,
         },
       },
     };
@@ -239,7 +244,7 @@ describe('WsHandler', () => {
       users: [USER1],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null, left: false,
         },
       },
     };
@@ -301,7 +306,7 @@ describe('WsHandler', () => {
         users: [USER2],
         userInfo: {
           [USER2]: {
-            color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
+            color: PLAYER_COLORS[1], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null, left: false,
           },
         },
       },
@@ -344,7 +349,7 @@ describe('WsHandler', () => {
       users: [],
       userInfo: {
         [USER1]: {
-          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
+          color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null, left: false,
         },
       },
     };

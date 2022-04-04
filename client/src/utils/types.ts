@@ -15,6 +15,7 @@ export interface WsUser {
     finishTime?: Date;
     finished: boolean;
     inventory: Powerup | null;
+    left: boolean;
 }
 
 export interface RaceData {

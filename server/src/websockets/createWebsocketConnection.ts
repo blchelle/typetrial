@@ -35,6 +35,7 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
   switch (message.type) {
     case ('connect_public'): {
       const raceInfo = wsHandler.connect_user_to_public_room(userInfo.user, ws);
+
       if (raceInfo) {
         userInfo = { user: userInfo.user, raceInfo };
       } else {

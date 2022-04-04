@@ -13,7 +13,7 @@ interface Race {
     text: string;
   };
   Results: {
-      User: {
+      User?: {
           username: string;
       };
       wpm: number;
@@ -44,7 +44,7 @@ const RaceInfo: React.FC = () => {
   const rows = race ? race.Results.map((result) => (
     <tr key={result.rank} style={{ background: user.id === result.userId ? 'goldenrod' : undefined }}>
       <td>{result.rank}</td>
-      <td>{result.User.username}</td>
+      <td>{result.User?.username ?? 'guest'}</td>
       <td>{result.wpm}</td>
     </tr>
 

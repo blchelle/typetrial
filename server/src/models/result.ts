@@ -28,7 +28,7 @@ export const getUserResults = async (userId: any, start: number, count: number) 
   });
 };
 
-export const createResult = async (userId:number, raceId: number, wpm: number, rank: number) => {
+export const createResult = async (userId: number | undefined, raceId: number, wpm: number, rank: number) => {
   const result = await db.result.create({
     data: {
       userId, raceId, wpm, rank,

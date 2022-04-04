@@ -25,10 +25,6 @@ export const getRace = async (raceId: any) => {
 };
 
 export const createRace = async (passageId:number) => {
-  const race = await db.race.create({
-    data: {
-      passageId,
-    },
-  });
+  const race = await db.race.create({ data: { passageId } });
   return race;
 };
