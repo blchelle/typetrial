@@ -11,6 +11,6 @@ module.exports = {
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: path.join(__dirname, 'src') }),
   testRegex: 'src/spec/.*\\.spec\\.tsx?$',
   transform: {
-    '.+\\.(css|styl|less|sass|scss)$': 'jest-transform-css',
+    ".+\\.(css|scss|png|jpg|svg)$": "jest-transform-stub",
   },
 };
