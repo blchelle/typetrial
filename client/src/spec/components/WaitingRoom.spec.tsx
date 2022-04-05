@@ -15,10 +15,7 @@ import Countdown from '../../components/Countdown';
 let USER1 = 'user1';
 let USER2 = 'user2';
 let ROOM_ID = '1';
-let RACE_INFO1;
-let RACE_INFO_FULL1;
-let RACE_INFO_PRIVATE;
-let EXAMPLE_PASSAGE;
+
 
 const joinedTime = Date.now();
 const countdownStart = Date.now();
