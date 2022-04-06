@@ -44,31 +44,31 @@ describe(Navigation, () => {
     });
   });
 
-  describe('when user is set', () => {
-    let logoutButton: ShallowWrapper;
+  // describe('when user is set', () => {
+  //   let logoutButton: ShallowWrapper;
 
-    beforeEach(async () => {
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      wrapper.setProps({});
+  //   beforeEach(async () => {
+  //     localStorage.setItem('user', JSON.stringify(mockUser));
+  //     wrapper.setProps({});
 
-      logoutButton = wrapper.findWhere((node) => node.is(Button) && node.text() === 'Logout');
-    });
+  //     logoutButton = wrapper.findWhere((node) => node.is(Button) && node.text() === 'Logout');
+  //   });
 
-    it('displays user and logout button if authenticated', () => {
-      expect(wrapper.findWhere((node) => node.is(Badge) && node.text().includes('WPM'))).to.have.lengthOf(1);
-      expect(wrapper.findWhere((node) => node.is(Badge) && node.text().includes('Races'))).to.have.lengthOf(1);
-      expect(wrapper.findWhere((node) => node.is(Text) && node.text() === 'testuser')).to.have.lengthOf(1);
-      expect(logoutButton).to.have.lengthOf(1);
-    });
+  //   it('displays user and logout button if authenticated', () => {
+  //     expect(wrapper.findWhere((node) => node.is(Badge) && node.text().includes('WPM'))).to.have.lengthOf(1);
+  //     expect(wrapper.findWhere((node) => node.is(Badge) && node.text().includes('Races'))).to.have.lengthOf(1);
+  //     expect(wrapper.findWhere((node) => node.is(Text) && node.text() === 'testuser')).to.have.lengthOf(1);
+  //     expect(logoutButton).to.have.lengthOf(1);
+  //   });
 
-    it('sends a logout request on button click', async () => {
-      axiosMock.get.mockResolvedValue({});
+  //   it('sends a logout request on button click', async () => {
+  //     axiosMock.get.mockResolvedValue({});
 
-      logoutButton.simulate('click');
-      await tick();
+  //     logoutButton.simulate('click');
+  //     await tick();
 
-      expect(axiosMock.get.mock.calls).to.have.lengthOf(1);
-      expect(localStorage.getItem('user')).to.not.exist;
-    });
-  });
+  //     expect(axiosMock.get.mock.calls).to.have.lengthOf(1);
+  //     expect(localStorage.getItem('user')).to.not.exist;
+  //   });
+  // });
 });
