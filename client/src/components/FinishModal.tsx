@@ -2,7 +2,7 @@ import { Modal, Title, Table } from '@mantine/core';
 import React, { useEffect, useState } from 'react';
 import { RaceData } from '@utils/types';
 import useUser from '@hooks/useUser';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { finishSortFunction } from '@utils/helpers';
 
 interface FinishModalProps {
