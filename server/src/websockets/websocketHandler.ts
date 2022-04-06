@@ -82,6 +82,10 @@ class WsHandler {
       return undefined;
     }
 
+    if (raceInfo.users.length >= this.maxUsers) {
+      return undefined;
+    }
+
     this.userInfo.set(user, ws);
 
     const takenColors = Object.values(raceInfo.userInfo).map(({ color }) => color);
