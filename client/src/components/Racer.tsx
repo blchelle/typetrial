@@ -1,3 +1,4 @@
+import useUser from '@hooks/useUser';
 import {
   Text, Group,
 } from '@mantine/core';
@@ -16,10 +17,11 @@ const Racer: React.FC<RacerProps> = ({
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const trackWidth = (trackRef.current?.offsetWidth ?? 140) - 140;
+  const { username } = useUser();
 
   return (
     <Group direction="column" spacing={0} align="stretch" ref={trackRef}>
-      <Text size="sm">{name}</Text>
+      <Text size="sm">{`${name}${username === name ? ' (you)' : ''}`}</Text>
       <Group position="apart">
         <RacerJoe color={color} progress={progress * trackWidth} />
         <Text style={{ width: '80px', borderLeft: '2px solid #000' }} align="right">

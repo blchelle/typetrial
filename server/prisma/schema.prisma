@@ -43,15 +43,15 @@ model Race {
 
 model Result {
   id     Int @id @default(autoincrement())
-  userId Int
+  userId Int?
   raceId Int
   wpm    Int
   rank   Int
 
-  Race Race @relation(fields: [raceId], references: [id])
-  User User @relation(fields: [userId], references: [id])
+  Race Race  @relation(fields: [raceId], references: [id])
+  User User? @relation(fields: [userId], references: [id])
 
-  @@unique([userId, raceId])
+  @@unique([userId, raceId, rank])
   @@index([userId])
 }
 

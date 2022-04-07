@@ -8,9 +8,10 @@ import { finishSortFunction } from '@utils/helpers';
 interface FinishModalProps {
     raceInfo: RaceData,
     opened: boolean,
+    websocket: WebSocket,
   }
 
-const FinishModal: React.FC<FinishModalProps> = ({ raceInfo, opened }) => {
+const FinishModal: React.FC<FinishModalProps> = ({ raceInfo, opened, websocket }) => {
   const { username } = useUser();
   const navigate = useNavigate();
 
@@ -34,7 +35,7 @@ const FinishModal: React.FC<FinishModalProps> = ({ raceInfo, opened }) => {
   return (
     <Modal
       opened={opened}
-      onClose={() => { navigate('/'); }}
+      onClose={() => { websocket.close(); navigate('/'); }}
       title="Finished!"
     >
       <Title order={5}>Stats</Title>

@@ -171,6 +171,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
     <Container size="sm" padding={0}>
       <FinishModal
         raceInfo={raceInfo}
+        websocket={websocket}
         opened={currentWordIndex === blurb.length}
       />
       <Paper padding="xl" style={{ backgroundColor: colors.blue[1], position: 'relative' }}>

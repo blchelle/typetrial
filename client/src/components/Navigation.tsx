@@ -51,7 +51,6 @@ const Navigation: React.FC = () => {
                 </Group>
               </Group>
               <Link to="/profile"><Button size="md" color="blue" variant="light"><IoStatsChart /></Button></Link>
-              <Button size="md" color="gray" variant="light"><IoSettings /></Button>
             </Group>
             <Button color="gray" variant="light" size="md" onClick={logoutUser}>Logout</Button>
           </Group>
