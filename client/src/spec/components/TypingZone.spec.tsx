@@ -34,7 +34,7 @@ const RACE_INFO1: RaceData = {
   users: [USER1],
   userInfo: {
     [USER1]: {
-      color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null,
+      color: PLAYER_COLORS[0], charsTyped: 0, wpm: 0, finished: false, joinedTime, inventory: null, left: false,
     },
   },
 };
