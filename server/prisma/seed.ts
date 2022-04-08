@@ -39,7 +39,7 @@ const main = async () => {
     races.map(
       async (race, i) => {
         // Shuffles the ranks
-        const rankPool = new Array(5).fill(null).map((_, i) => i)
+        const rankPool = new Array(5).fill(null).map((_, i) => i+1)
         rankPool.sort(() => (Math.random() > .5) ? 1 : -1)
 
         return Promise.all(users.map(async (user) => {
