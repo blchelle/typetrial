@@ -209,7 +209,7 @@ describe('WsHandler', () => {
     userInfo.set(USER1, client1);
 
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => jest.fn());
+    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => {});
     wsHandler.type_char(1, USER1, RACE_INFO1);
     expect(RACE_INFO1.userInfo[USER1].charsTyped).toEqual(1);
   });
@@ -374,7 +374,7 @@ describe('WsHandler', () => {
     userInfo.set(USER1, client1);
     const power: Powerup = 'rumble';
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => jest.fn());
+    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => {});
     wsHandler.use_powerup(power, USER1, RACE_INFO1);
     expect(RACE_INFO1.activeEffects).toHaveLength(1);
     expect(RACE_INFO1.activeEffects[0].powerupType).toEqual('rumble');
@@ -386,7 +386,7 @@ describe('WsHandler', () => {
     userInfo.set(USER1, client1);
     const power: Powerup = 'doubletap';
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => jest.fn());
+    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => {});
     wsHandler.use_powerup(power, USER1, RACE_INFO1);
     expect(RACE_INFO1.activeEffects).toHaveLength(1);
     expect(RACE_INFO1.activeEffects[0].powerupType).toEqual('doubletap');
@@ -398,7 +398,7 @@ describe('WsHandler', () => {
     userInfo.set(USER1, client1);
     const power: Powerup = 'whiteout';
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => jest.fn());
+    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => {});
     wsHandler.use_powerup(power, USER1, RACE_INFO1);
     expect(RACE_INFO1.activeEffects).toHaveLength(1);
     expect(RACE_INFO1.activeEffects[0].powerupType).toEqual('whiteout');
@@ -410,21 +410,10 @@ describe('WsHandler', () => {
     userInfo.set(USER1, client1);
     const power: Powerup = 'knockout';
     const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => jest.fn());
+    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => {});
     wsHandler.use_powerup(power, USER1, RACE_INFO1);
     expect(RACE_INFO1.activeEffects).toHaveLength(1);
     expect(RACE_INFO1.activeEffects[0].powerupType).toEqual('knockout');
-    mockServer.close();
-  });
-
-  it('finish race', async () => {
-    rooms.set(ROOM_ID, RACE_INFO1);
-    userInfo.set(USER1, client1);
-    const wsHandler = new WsHandler(2, rooms, userInfo, 0);
-    jest.spyOn(wsHandler, 'broadcast_race_info').mockImplementation(() => jest.fn());
-    const mock = jest.spyOn(wsHandler, 'end_race').mockImplementation(() => jest.fn());
-    wsHandler.type_char(4, USER1, RACE_INFO1);
-    expect(mock).toHaveBeenCalled();
     mockServer.close();
   });
 });
