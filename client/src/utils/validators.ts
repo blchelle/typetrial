@@ -4,7 +4,7 @@ export const emailValidator = (email: string) => {
 };
 
 export const usernameValidator = (username: string) => {
-  const usernameRegex = /^[a-z0-9_-]{3,16}$/;
+  const usernameRegex = /^[a-zA-Z0-9_-]{3,16}$/;
   return usernameRegex.test(username);
 };
 
