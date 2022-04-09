@@ -1,5 +1,8 @@
 ## Setup
 These instructions have been tested on Ubuntu
+
+You can see our full repo on github, along with our issues at https://github.com/blchelle/capstone
+
 1. Ensure you have [node](https://nodejs.org/en/download/) with a version > 16.0.0 and [yarn](https://yarnpkg.com/getting-started/install) installed on your machine.
 ```sh
 sudo apt update
