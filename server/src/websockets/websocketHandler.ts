@@ -278,20 +278,35 @@ class WsHandler {
     }, process.env.NODE_ENV === 'test' ? 0 : TIMEOUT_MS + this.soloTimeout);
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  get_first_place(raceInfo: RaceData) {
+    const firstPlace: [string|null, number] = Object.entries(raceInfo.userInfo)
+      .map<[string, number]>(([username, u]) => [username, u.charsTyped])
+      .reduce<[string|null, number]>(([prevusername, prevcharsTyped], [username, charsTyped]) => {
+        if (prevcharsTyped < charsTyped) {
+          return [username, charsTyped];
+        }
+        return [prevusername, prevcharsTyped];
+      }, [null, 0]);
+    return firstPlace;
+  }
+
   type_char(charsTyped: number, username: string, raceInfo: RaceData) {
     raceInfo.userInfo[username].charsTyped = charsTyped;
     const endTime = new Date();
     const wpm = ((charsTyped / 5) * MILLISECONDS_PER_MINUTE) / (endTime.getTime() - raceInfo.raceStart!);
     raceInfo.userInfo[username].wpm = Math.floor(wpm);
 
-    if (raceInfo.userInfo[username].inventory === null && !raceInfo.isSolo && Math.random() < 0.05) {
+    const [, firstPlaceChars] = this.get_first_place(raceInfo);
+    const chance = ((firstPlaceChars - charsTyped) * 0.2) / (raceInfo.passage?.length ?? 100) + 0.02;
+    if (raceInfo.userInfo[username].inventory === null && !raceInfo.isSolo && Math.random() < chance) {
       let powerup:Powerup;
       const powerupRand = Math.random();
-      if (powerupRand < 0.05) {
+      if (powerupRand < 0.25) {
         powerup = 'knockout';
-      } else if (powerupRand < 0.1) {
+      } else if (powerupRand < 0.5) {
         powerup = 'doubletap';
-      } else if (powerupRand < 0.55) {
+      } else if (powerupRand < 0.75) {
         powerup = 'rumble';
       } else {
         powerup = 'whiteout';
@@ -323,14 +338,7 @@ class WsHandler {
     switch (powerupType) {
       case 'knockout': {
       // Target the person in first place!
-        const [target] = Object.entries(raceInfo.userInfo)
-          .map<[string, number]>(([username, u]) => [username, u.charsTyped])
-          .reduce<[string|null, number]>(([prevUsername, prevCharsTyped], [username, charsTyped]) => {
-            if (prevCharsTyped < charsTyped) {
-              return [username, charsTyped];
-            }
-            return [prevUsername, prevCharsTyped];
-          }, [null, 0]);
+        const [target] = this.get_first_place(raceInfo);
         newEffect = {
           powerupType, user, endTime: Date.now() + 1500, target,
         };
