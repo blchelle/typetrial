@@ -15,7 +15,7 @@ interface SignupInput {
 }
 
 const EMAIL_REGEX = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-const USERNAME_REGEX = /^[a-z0-9_-]{0,16}$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9_-]{0,16}$/;
 const PASSWORD_REGEX = /^[a-zA-Z0-9%+'!#$^?:,~_-]{8,32}$/;
 const UUID_REGEX = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/;
 

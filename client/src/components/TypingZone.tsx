@@ -181,7 +181,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             style={{ left: `${(100 * currentWordIndex) / blurb.length}%` }}
           />
         </div>
-        <div className="rounded-lg bg-gray-200 p-8">
+        <div id="passage" className="rounded-lg bg-gray-200 p-8">
           <div
             className={effects.includes('rumble') ? 'rumble' : ''}
             style={{ userSelect: 'none' }}
@@ -193,7 +193,8 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
               const opacity = (charIndex < currentCharIndex) ? 1 : baseOpacity;
 
               return (
-                <Text style={{ display: 'inline', position: 'relative', color }}>
+                // eslint-disable-next-line react/no-array-index-key
+                <Text key={charIndex} style={{ display: 'inline', position: 'relative', color }}>
                   {renderCursor(charIndex, raceInfo)}
                   <span style={{ opacity }}>{letter}</span>
                 </Text>
