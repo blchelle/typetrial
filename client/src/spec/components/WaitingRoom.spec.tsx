@@ -3,6 +3,7 @@ import { mount } from 'enzyme';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Button, Text } from '@mantine/core';
 import { act } from 'react-dom/test-utils';
+import { NotificationsProvider } from '@mantine/notifications';
 import WaitingRoom from '../../components/WaitingRoom';
 import env from '../../config/environment';
 import Racer from '../../components/Racer';
@@ -48,11 +49,13 @@ describe('WaitingRoom', () => {
       },
     };
     const wrapper = mount(
-      <MemoryRouter initialEntries={['/room']}>
-        <Routes>
-          <Route path="/room" element={<WaitingRoom isPublic />} />
-        </Routes>
-      </MemoryRouter>,
+      <NotificationsProvider>
+        <MemoryRouter initialEntries={['/room']}>
+          <Routes>
+            <Route path="/room" element={<WaitingRoom isPublic />} />
+          </Routes>
+        </MemoryRouter>
+      </NotificationsProvider>,
     );
     await mockServer.connected;
     await expect(mockServer).toReceiveMessage(JSON.stringify({ type: 'connect_public', public: true }));
@@ -85,11 +88,13 @@ describe('WaitingRoom', () => {
       },
     };
     const wrapper = mount(
-      <MemoryRouter initialEntries={['/room']}>
-        <Routes>
-          <Route path="/room" element={<WaitingRoom isPublic />} />
-        </Routes>
-      </MemoryRouter>,
+      <NotificationsProvider>
+        <MemoryRouter initialEntries={['/room']}>
+          <Routes>
+            <Route path="/room" element={<WaitingRoom isPublic />} />
+          </Routes>
+        </MemoryRouter>
+      </NotificationsProvider>,
     );
     await mockServer.connected;
     await expect(mockServer).toReceiveMessage(JSON.stringify({ type: 'connect_public', public: true }));
@@ -121,11 +126,14 @@ describe('WaitingRoom', () => {
       },
     };
     const wrapper = mount(
-      <MemoryRouter initialEntries={['/room/private']}>
-        <Routes>
-          <Route path="/room/private" element={<WaitingRoom isCreator />} />
-        </Routes>
-      </MemoryRouter>,
+      <NotificationsProvider>
+        <MemoryRouter initialEntries={['/room/private']}>
+          <Routes>
+            <Route path="/room/private" element={<WaitingRoom isCreator />} />
+          </Routes>
+        </MemoryRouter>
+      </NotificationsProvider>
+      ,
     );
     await mockServer.connected;
     await expect(mockServer).toReceiveMessage(JSON.stringify({ type: 'create_private', public: false, solo: false }));
@@ -157,11 +165,14 @@ describe('WaitingRoom', () => {
       },
     };
     const wrapper = mount(
-      <MemoryRouter initialEntries={['/room/private/123']}>
-        <Routes>
-          <Route path="/room/private/:roomId" element={<WaitingRoom />} />
-        </Routes>
-      </MemoryRouter>,
+      <NotificationsProvider>
+        <MemoryRouter initialEntries={['/room/private/123']}>
+          <Routes>
+            <Route path="/room/private/:roomId" element={<WaitingRoom />} />
+          </Routes>
+        </MemoryRouter>
+      </NotificationsProvider>
+      ,
     );
     await mockServer.connected;
     await expect(mockServer).toReceiveMessage(JSON.stringify({ type: 'connect_private', public: false, roomId: '123' }));
@@ -178,11 +189,13 @@ describe('WaitingRoom', () => {
   });
   it('error handling', async () => {
     const wrapper = mount(
-      <MemoryRouter initialEntries={['/room']}>
-        <Routes>
-          <Route path="/room" element={<WaitingRoom isPublic />} />
-        </Routes>
-      </MemoryRouter>,
+      <NotificationsProvider>
+        <MemoryRouter initialEntries={['/room']}>
+          <Routes>
+            <Route path="/room" element={<WaitingRoom isPublic />} />
+          </Routes>
+        </MemoryRouter>
+      </NotificationsProvider>,
     );
     await mockServer.connected;
     await expect(mockServer).toReceiveMessage(JSON.stringify({ type: 'connect_public', public: true }));
@@ -217,11 +230,13 @@ describe('WaitingRoom', () => {
       },
     };
     const wrapper = mount(
-      <MemoryRouter initialEntries={['/room']}>
-        <Routes>
-          <Route path="/room" element={<WaitingRoom isPublic />} />
-        </Routes>
-      </MemoryRouter>,
+      <NotificationsProvider>
+        <MemoryRouter initialEntries={['/room']}>
+          <Routes>
+            <Route path="/room" element={<WaitingRoom isPublic />} />
+          </Routes>
+        </MemoryRouter>
+      </NotificationsProvider>,
     );
     await mockServer.connected;
     await expect(mockServer).toReceiveMessage(JSON.stringify({ type: 'connect_public', public: true }));

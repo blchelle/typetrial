@@ -6,7 +6,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
-    "test": "jest -i"
+    "test": "jest -i --silent"
   },
   "dependencies": {
     "@mantine/core": "^3.6.14",
