@@ -5,6 +5,8 @@ import useUser from '@hooks/useUser';
 import { useNavigate } from 'react-router-dom';
 import { finishSortFunction } from '@utils/helpers';
 
+// Displays race data when the race is over, FR11
+
 interface FinishModalProps {
     raceInfo: RaceData,
     opened: boolean,

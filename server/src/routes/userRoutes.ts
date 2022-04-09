@@ -7,6 +7,8 @@ import {
 import { protectRoute } from '../middlewares/authMiddleware';
 import catchAsync from '../utils/catchAsync';
 
+// Routes requests for user data and management : FR1, FR2, FR3
+
 const router = express.Router({ mergeParams: true });
 
 router.route('/signup').post(catchAsync(handleSignupUser));

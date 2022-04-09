@@ -6,10 +6,13 @@ import { Link } from 'react-router-dom';
 
 import { useModals } from '@mantine/modals';
 import { AuthModals, AuthType } from '@components/AuthForm';
-import { IoSettings, IoStatsChart } from 'react-icons/io5';
+import { IoStatsChart } from 'react-icons/io5';
 import axios from 'axios';
 import useUser from '@hooks/useUser';
 import typeTrialLogo from '../assets/typeTrialLogoSmall.png';
+
+// Important for whole game, links to all rooms,
+// especially relevant to login, signup, and displaying user data: FR1, FR2
 
 const Navigation: React.FC = () => {
   const modals = useModals();

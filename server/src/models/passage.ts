@@ -1,6 +1,8 @@
 import { Passage } from '@prisma/client';
 import db from '../prismaClient';
 
+// Handles requests to add passage, FR9
+
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * max);
 }

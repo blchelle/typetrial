@@ -1,6 +1,8 @@
 import db from '../prismaClient';
 import { NotFoundError } from '../errors/notFoundError';
 
+// Handles requests for race info: FR12
+
 export const getRace = async (raceId: any) => {
   const intRaceId = parseInt(raceId, 10);
   const race = await db.race.findUnique({

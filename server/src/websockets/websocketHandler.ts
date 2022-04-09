@@ -60,6 +60,7 @@ class WsHandler {
     this.broadcast_message(raceInfo, message);
   }
 
+  // Handles matchmaking: FR7
   connect_user_to_public_room(user: string, ws: WebSocket): RaceData | undefined {
     if (this.userInfo.get(user)) return undefined;
 
@@ -67,6 +68,7 @@ class WsHandler {
     return this.connect_user_to_room(user, ws, roomId);
   }
 
+  // Handles joining of a known room: FR5, FR7
   connect_user_to_room(user: string, ws: WebSocket, roomId: string): RaceData | undefined {
     const raceInfo = this.rooms.get(roomId);
     const existingUser = this.userInfo.get(user);
@@ -155,6 +157,7 @@ class WsHandler {
     return foundRoomId === '' ? this.create_room(true, false) : foundRoomId;
   }
 
+  // Handles creation of a room: FR4, FR7
   create_room(isPublic: boolean, isSolo: boolean, owner: string = '') {
     let roomId = v4();
 
@@ -214,6 +217,7 @@ class WsHandler {
     return roomId;
   }
 
+  // Handles starting of a race: FR6
   start_race(owner: string, raceInfo: RaceData) {
     if (owner !== raceInfo.owner) {
       const ws = this.userInfo.get(owner);
@@ -291,6 +295,7 @@ class WsHandler {
     return firstPlace;
   }
 
+  // Handles incoming typing updates, broadcasting them to all users and updating state: FR8
   type_char(charsTyped: number, username: string, raceInfo: RaceData) {
     raceInfo.userInfo[username].charsTyped = charsTyped;
     const endTime = new Date();
@@ -298,6 +303,7 @@ class WsHandler {
     raceInfo.userInfo[username].wpm = Math.floor(wpm);
 
     const [, firstPlaceChars] = this.get_first_place(raceInfo);
+    // Randomly assigns powerups, FR15
     const chance = ((firstPlaceChars - charsTyped) * 0.2) / (raceInfo.passage?.length ?? 100) + 0.02;
     if (raceInfo.userInfo[username].inventory === null && !raceInfo.isSolo && Math.random() < chance) {
       let powerup:Powerup;
@@ -336,6 +342,7 @@ class WsHandler {
   use_powerup(powerupType: Powerup, user: string, raceInfo: RaceData) {
     let newEffect: Effect;
     switch (powerupType) {
+      // Handles usage of knockout powerup: FR19
       case 'knockout': {
       // Target the person in first place!
         const [target] = this.get_first_place(raceInfo);
@@ -343,12 +350,15 @@ class WsHandler {
           powerupType, user, endTime: Date.now() + 1500, target,
         };
         break; }
+      // Handles usage of doubletap powerup: FR17
       case 'doubletap': {
         newEffect = { powerupType, user, endTime: Date.now() + 3000 };
         break; }
+      // Handles usage of doubletap rumble: FR18
       case 'rumble': {
         newEffect = { powerupType, user, endTime: Date.now() + 5000 };
         break; }
+      // Handles usage of doubletap rumble: FR16
       case 'whiteout': {
         newEffect = { powerupType, user, endTime: Date.now() + 5000 };
         break; }

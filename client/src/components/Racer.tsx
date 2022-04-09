@@ -5,6 +5,8 @@ import {
 import React, { useRef } from 'react';
 import RacerJoe from './RacerJoe';
 
+// Icon that moves as each player types: FR10
+
 interface RacerProps {
     name: string
     color: string

@@ -9,6 +9,8 @@ import { IoCheckmark, IoClose, IoPerson } from 'react-icons/io5';
 import { useNotifications } from '@mantine/notifications';
 import axios from '../config/axios';
 
+// UI for forgotten password handler (takes in an email address): FR3
+
 const ForgotPassword: React.FC = () => {
   const form = useForm({
     initialValues: { identifier: '' },

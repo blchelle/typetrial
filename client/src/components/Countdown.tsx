@@ -1,6 +1,8 @@
 import { Progress } from '@mantine/core';
 import React, { useState } from 'react';
 
+// Timer after waiting room as race starts: FR5, FR6
+
 interface CountdownProps {
     startSeconds: number
     maxSeconds: number

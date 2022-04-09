@@ -7,6 +7,9 @@ import env from '../config/environment';
 import APIError from '../errors/apiError';
 import { getUserByField } from '../models/user';
 
+// Middleware for ensuring authentication of users:
+// FR2
+
 export const createJWT = (userId: number, res: Response) => {
   const { secret, expiryTime, secure } = env.jwt;
 

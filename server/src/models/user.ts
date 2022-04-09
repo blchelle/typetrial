@@ -8,6 +8,8 @@ import { ForbiddenError } from '../errors/forbiddenError';
 import db from '../prismaClient';
 import { UserWithResults } from '../utils/types';
 
+// Handles requests for user data and management : FR1, FR2, FR3
+
 interface SignupInput {
   email: string
   username: string

@@ -10,6 +10,9 @@ import {
 import useUser from '@hooks/useUser';
 import axios from '@config/axios';
 
+// Displays user data (WPM progress in a graph and tables filled with past games)
+// FR12 and FR13
+
 interface Result {
   id: number,
   userId: number,

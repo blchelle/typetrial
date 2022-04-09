@@ -16,6 +16,8 @@ import ForgotPassword from './ForgotPassword';
 
 export type AuthType = 'login' | 'signup' | 'forgotPassword'
 
+// Handles logic for FR1, FR2
+
 interface AuthFormProps {
   type: AuthType
 }

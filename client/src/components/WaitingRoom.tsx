@@ -13,6 +13,10 @@ import Racer from './Racer';
 import Copy from './Copy';
 import Countdown from './Countdown';
 
+// FR4, FR5, FR6, FR7, FR14
+// Handles all forms of waiting room, and establishes initial websocket connection
+// FRs listed below
+
 interface RoomProps {
   isPublic?: boolean;
   isCreator?: boolean;
@@ -81,7 +85,7 @@ const Room: React.FC<RoomProps> = (
           setErrorMessage(errorResponse.message);
         }
       };
-
+      // Gets roomID from URL and uses it to request join a specific private room: FR5
       if (!isPublic && !isCreator) {
         const connectMessage = JSON.stringify({
           type: 'connect_private',
@@ -89,6 +93,7 @@ const Room: React.FC<RoomProps> = (
           roomId,
         });
         ws.send(connectMessage);
+      // Requests a new private room, with a new unique URL: FR4
       } else if (!isPublic) {
         const connectMessage = JSON.stringify({
           type: 'create_private',
@@ -96,6 +101,7 @@ const Room: React.FC<RoomProps> = (
           solo: isSolo,
         });
         ws.send(connectMessage);
+      // Attempt join public queue, FR7
       } else {
         const connectMessage = JSON.stringify({
           type: 'connect_public',
@@ -121,6 +127,7 @@ const Room: React.FC<RoomProps> = (
   }, [errorMessage]);
 
   useEffect(() => {
+    // Start the race in a public queue when enough players are ready: FR6
     if (raceInfo.users.length < 2 && !timeoutId && isPublic) {
       setTimeoutId(setTimeout(() => {
         notifications.showNotification({
@@ -133,7 +140,7 @@ const Room: React.FC<RoomProps> = (
       clearTimeout(timeoutId);
     }
   }, [raceInfo.users]);
-
+  // Create start race button. It sends message to the server when ready: FR6
   const startRace = () => {
     const startMessage: StartMessage = {
       type: 'start',

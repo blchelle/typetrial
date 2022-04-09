@@ -17,6 +17,8 @@ import {
 } from '../models/user';
 import sendResetPasswordEmail from '../utils/mailer';
 
+// Handles requests for user data and management from client: FR1, FR2, FR3
+
 export const handleSignupUser = async (req: Request, res: Response) => {
   const { body } = req;
   await validateSignupInput(body);

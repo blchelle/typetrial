@@ -6,6 +6,8 @@ import { useParams } from 'react-router-dom';
 import useUser from '@hooks/useUser';
 import axios from '@config/axios';
 
+// Shows all data for a single race: FR12
+
 interface Race {
   id: number,
   passageId: number,

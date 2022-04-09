@@ -7,6 +7,9 @@ import {
   UserInfo, ConnectPrivateMessage, CreatePrivateMessage, InMessage, TypeMessage, UsePowerupMessage,
 } from '../utils/types';
 
+// Handles all incoming websocket messages
+// Multiple FRs described below:
+
 export const sendError = (ws: WebSocket, message: string) => {
   ws.send(JSON.stringify({ type: 'error', message }));
   ws.close();
@@ -33,6 +36,7 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
   }
 
   switch (message.type) {
+    // Handles requests for matchmaking: FR7
     case ('connect_public'): {
       const raceInfo = wsHandler.connect_user_to_public_room(userInfo.user, ws);
 
@@ -44,6 +48,7 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
       }
       break;
     }
+    // Handles requests to join a known private room: FR5
     case ('connect_private'): {
       const privateMessage = safeCast<ConnectPrivateMessage>(message);
       if (!privateMessage) {
@@ -62,6 +67,7 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
       }
       break;
     }
+    // Handles requests to create a private room: FR4
     case ('create_private'): {
       const createPrivateMessage = safeCast<CreatePrivateMessage>(message);
       if (!createPrivateMessage) {
@@ -80,10 +86,12 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
       }
       break;
     }
+    // Handles requests to start race: FR6
     case ('start'): {
       wsHandler.start_race(userInfo.user, userInfo.raceInfo);
       break;
     }
+    // Handles incoming typing updates: FR8, FR15
     case ('type'): {
       const typeMessage = safeCast<TypeMessage>(message);
       if (typeMessage) {
@@ -95,6 +103,7 @@ export const handleMessage = (wsHandler: WsHandler, userInfo: UserInfo, ws: WebS
       }
       break;
     }
+    // Handles incoming requests to use a powerup: FR16, FR17, FR18, FR19
     case ('powerup'): {
       const typeMessage = safeCast<UsePowerupMessage>(message);
       if (typeMessage) {

@@ -7,6 +7,8 @@ interface CopyProps {
     text: string
 }
 
+// Displays link to room: FR4, FR5
+
 const Copy: React.FC<CopyProps> = ({ text }) => {
   const { colors } = useMantineTheme();
 

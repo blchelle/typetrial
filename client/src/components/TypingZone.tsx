@@ -11,6 +11,9 @@ import '../styles/powerups.css';
 import { useFocusTrap } from '@mantine/hooks';
 import FinishModal from './FinishModal';
 
+// Handles all typing inputs and server update outputs, all server messages.
+// Functional requirements listed below
+
 interface TypingZoneProps {
   raceInfo: RaceData,
   websocket?: any
@@ -39,6 +42,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
 
   const blurb = passage.split(' ');
 
+  // This function handles input changes FR8
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (effects.includes('knockout')) return;
 
@@ -58,6 +62,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
       setCurrentWordIndex(currentWordIndex + 1);
       setCurrentWordInput('');
 
+      // forces user to type the same text twice: FR17
       if (effects.includes('doubletap')) {
         setCurrentCharIndex(currentCharIndex - Math.ceil(targetWord.length / 2) + 1);
       }
@@ -84,6 +89,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
     }
   };
 
+  // Handles incoming powerup effects, triggers them to start and handles their endings: FR15
   useEffect(() => {
     if (raceInfo.activeEffects.length === 0 || !raceInfo.activeEffects[effectIndex]) {
       return;
@@ -137,6 +143,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
     websocket?.send(JSON.stringify(typeMessage));
   };
 
+  // Displays cursors for user and opponents in correct places on screen: FR10
   const renderCursor = (charIndex: number, renderRaceInfo: RaceData): JSX.Element | null => {
     if (!raceInfo.hasStarted) return null;
 
@@ -188,7 +195,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
           >
             {passage.split('').map((letter, charIndex) => {
               const color = (charIndex < currentCharIndex) ? colors.green[8] : colors.gray[9];
-
+              // Replaces the text with a lighter version of the same text: FR16
               const baseOpacity = effects.includes('whiteout') ? 0.07 : 1;
               const opacity = (charIndex < currentCharIndex) ? 1 : baseOpacity;
 
@@ -202,6 +209,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             })}
           </div>
           { /* An invisible copy of the text for when rumble is on, it maintains the box height */
+          // Replaces the text with a rumbling version of the same text: FR18
             effects.includes('rumble') && (
             <div style={{ opacity: 0 }}>
               <Text>{passage}</Text>
@@ -212,6 +220,7 @@ const TypingZone: React.FC<TypingZoneProps> = ({ websocket, raceInfo }) => {
             styles={{ defaultVariant: { backgroundColor: getBackgroundColor() } }}
             onChange={handleInputChange}
             value={currentWordInput}
+            // Disables input box so text cannot be typed: FR19
             disabled={currentWordIndex === blurb.length || effects.includes('knockout') || !raceInfo.hasStarted}
             mt="lg"
             ref={focusTrapRef}

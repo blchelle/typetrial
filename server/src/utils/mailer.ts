@@ -2,6 +2,8 @@ import SendGrid, { MailDataRequired } from '@sendgrid/mail';
 import environment from '../config/environment';
 import { writeLog } from './log';
 
+// Send email to user with password reset info: FR3
+
 const sendResetPasswordEmail = async (to: string, token: string) => {
   if (!environment.mailer) {
     writeLog({ event: 'Reset Password', token }, 'info');

@@ -9,6 +9,8 @@ import React from 'react';
 import { IoCheckmark, IoClose, IoLockClosed } from 'react-icons/io5';
 import { useParams } from 'react-router';
 
+// Linked to by password reset email, allows user to reset their password via the inputs: FR3
+
 const ResetPassword: React.FC = () => {
   const { token } = useParams();
 

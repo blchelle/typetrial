@@ -10,6 +10,8 @@ import userRoutes from './userRoutes';
 import resultRoutes from './resultRoutes';
 import raceRoutes from './raceRoutes';
 
+// Handles all incoming RESTful requests
+
 const router = express.Router({ mergeParams: true });
 
 router.get('/random', (req: Request, res: Response) => {

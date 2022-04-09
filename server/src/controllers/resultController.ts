@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { getResult, getUserResults } from '../models/result';
 
+// Handles client request for specific result in race, or all results for a user: FR12, FR13
+
 export const handleGetResult = async (req: Request, res: Response) => {
   const { resultId } = req.params;
   const result = await getResult(resultId);

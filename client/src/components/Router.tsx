@@ -9,6 +9,8 @@ import Profile from '@components/Profile';
 import ResetPassword from '@components/ResetPassword';
 import RaceInfo from './RaceInfo';
 
+// Important for whole game, maps each URL to a page, important for all FRs
+
 const Router: React.FC = () => (
   <BrowserRouter>
     <Navigation />

@@ -2,6 +2,8 @@ import db from '../prismaClient';
 
 import { NotFoundError } from '../errors/notFoundError';
 
+// Handles request for specific result in race, or all results for a user: FR12, FR13
+
 export const getResult = async (resultId: any) => {
   const intResultId = parseInt(resultId, 10);
 

@@ -1,5 +1,7 @@
 import React from 'react';
 
+// The icon used in the Racer component, a recolorable car: FR10
+
 interface RacerJoeProps {
   color: string
   progress: number

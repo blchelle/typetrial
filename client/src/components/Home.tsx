@@ -3,6 +3,8 @@ import {
 } from '@mantine/core';
 import React from 'react';
 
+// Important for whole game, links to all rooms, crucial for all functional requirements.
+
 const Home: React.FC = () => {
   const { colors } = useMantineTheme();
   const whiteBg = { backgroundColor: colors.gray[0] };
