@@ -11,8 +11,8 @@ const environment: { [_ in NodeEnv]: Environment } = {
     baseSocketUrl: 'ws://localhost:8080',
   },
   production: {
-    baseClientUrl: `http://${window.location.host}`,
-    baseSocketUrl: `ws://${window.location.host}`,
+    baseClientUrl: `https://${window.location.host}`,
+    baseSocketUrl: `wss://${window.location.host}`,
   },
   test: {
     baseClientUrl: 'http://localhost:3000',
